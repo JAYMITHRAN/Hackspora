@@ -30,7 +30,11 @@ console.log("Hello TypeScript");
 - Item 2
 `;
 
-export default function Blog({md}:String) {
+interface BlogProps {
+  md: string;
+}
+
+export default function Blog({md}: BlogProps) {
   return (
     <>
       <ReactMarkdown
