@@ -10,6 +10,7 @@ import { Input } from "@/components/common/FormField"
 import Navbar from "@/components/layout/Navbar"
 import Footer from "@/components/layout/Footer"
 import { useLocalStorage } from "@/lib/hooks/useLocalStorage"
+import { useTranslation } from "@/lib/hooks/useTranslation"
 import { COMPANY_LOGOS, SOCIAL_PROOF_STATS } from "@/lib/utils/constants"
 import {
   SparklesIcon,
@@ -22,16 +23,17 @@ import {
 } from "@heroicons/react/24/outline"
 
 export default function LandingPage() {
+  const { t } = useTranslation()
   const [email, setEmail] = useLocalStorage("newsletter-email", "")
   const [typewriterText, setTypewriterText] = useState("")
   const [currentTextIndex, setCurrentTextIndex] = useState(0)
   const [isSubscribed, setIsSubscribed] = useState(false)
 
   const typewriterTexts = [
-    "Discover your dream career with AI",
-    "Get personalized career recommendations",
-    "Build skills for your future success",
-    "Connect with top employers worldwide",
+    t('landing.hero.typewriter.text1'),
+    t('landing.hero.typewriter.text2'),
+    t('landing.hero.typewriter.text3'),
+    t('landing.hero.typewriter.text4'),
   ]
 
   // Typewriter effect
@@ -65,23 +67,20 @@ export default function LandingPage() {
   const features = [
     {
       icon: <SparklesIcon className="w-8 h-8" />,
-      title: "AI Career Advisor",
-      description:
-        "Get personalized career recommendations powered by advanced AI algorithms that understand your unique skills and interests.",
+      title: t('landing.features.items.aiAdvisor.title'),
+      description: t('landing.features.items.aiAdvisor.description'),
       color: "from-blue-500 to-indigo-600",
     },
     {
       icon: <ChartBarIcon className="w-8 h-8" />,
-      title: "Skill Gap Analysis",
-      description:
-        "Identify exactly what skills you need to develop for your target career with detailed gap analysis and learning roadmaps.",
+      title: t('landing.features.items.skillGap.title'),
+      description: t('landing.features.items.skillGap.description'),
       color: "from-purple-500 to-pink-600",
     },
     {
       icon: <BriefcaseIcon className="w-8 h-8" />,
-      title: "Live Job Updates",
-      description:
-        "Stay updated with the latest job opportunities that match your profile and career goals in real-time.",
+      title: t('landing.features.items.jobUpdates.title'),
+      description: t('landing.features.items.jobUpdates.description'),
       color: "from-green-500 to-emerald-600",
     },
   ]
@@ -98,12 +97,12 @@ export default function LandingPage() {
             <div className="text-center lg:text-left">
               <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium mb-6">
                 <SparklesIcon className="w-4 h-4" />
-                AI-Powered Career Guidance
+                {t('landing.hero.badge')}
               </div>
 
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 text-balance">
-                Your Future Career Starts{" "}
-                <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Here</span>
+                {t('landing.hero.title')}{" "}
+                <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{t('landing.hero.titleHighlight')}</span>
               </h1>
 
               <div className="h-16 mb-8">
@@ -116,7 +115,7 @@ export default function LandingPage() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
                 <Link href="/assessment">
                   <Button size="lg" icon={<ArrowRightIcon className="w-5 h-5" />}>
-                    Start Assessment
+                    {t('landing.hero.cta.startAssessment')}
                   </Button>
                 </Link>
                 <Button
@@ -128,22 +127,22 @@ export default function LandingPage() {
                     console.log("Demo persona clicked")
                   }}
                 >
-                  Try Demo Persona
+                  {t('landing.hero.cta.tryDemo')}
                 </Button>
               </div>
 
               <div className="flex items-center justify-center lg:justify-start gap-8 text-sm text-gray-600">
                 <div className="flex items-center gap-2">
                   <CheckIcon className="w-4 h-4 text-green-500" />
-                  Free Assessment
+                  {t('landing.hero.features.freeAssessment')}
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckIcon className="w-4 h-4 text-green-500" />
-                  Instant Results
+                  {t('landing.hero.features.instantResults')}
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckIcon className="w-4 h-4 text-green-500" />
-                  AI-Powered
+                  {t('landing.hero.features.aiPowered')}
                 </div>
               </div>
             </div>
@@ -167,8 +166,8 @@ export default function LandingPage() {
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Trusted by Students Worldwide</h2>
-            <p className="text-lg text-gray-600">Join thousands who have discovered their ideal career path</p>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">{t('landing.socialProof.title')}</h2>
+            <p className="text-lg text-gray-600">{t('landing.socialProof.subtitle')}</p>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
@@ -181,7 +180,7 @@ export default function LandingPage() {
           </div>
 
           <div className="text-center mb-8">
-            <p className="text-gray-600 mb-6">Partnered with leading companies</p>
+            <p className="text-gray-600 mb-6">{t('landing.socialProof.partneredWith')}</p>
             <div className="flex items-center justify-center gap-8 flex-wrap opacity-60">
               {COMPANY_LOGOS.map((company, index) => (
                 <img
@@ -201,11 +200,10 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Everything You Need to Find Your Perfect Career
+              {t('landing.features.title')}
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto text-pretty">
-              Our AI-powered platform provides comprehensive career guidance tailored to your unique profile and
-              aspirations.
+              {t('landing.features.subtitle')}
             </p>
           </div>
 
@@ -229,31 +227,28 @@ export default function LandingPage() {
       <section className="py-24 bg-gradient-to-br from-gray-50 to-blue-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">How It Works</h2>
-            <p className="text-lg text-gray-600">Get started in just 3 simple steps</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{t('landing.howItWorks.title')}</h2>
+            <p className="text-lg text-gray-600">{t('landing.howItWorks.subtitle')}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
                 step: "01",
-                title: "Take Assessment",
-                description:
-                  "Complete our comprehensive career assessment to help us understand your skills, interests, and goals.",
+                title: t('landing.howItWorks.steps.assessment.title'),
+                description: t('landing.howItWorks.steps.assessment.description'),
                 icon: <AcademicCapIcon className="w-8 h-8" />,
               },
               {
                 step: "02",
-                title: "Get AI Analysis",
-                description:
-                  "Our AI analyzes your responses and matches you with careers that align with your profile and market demand.",
+                title: t('landing.howItWorks.steps.analysis.title'),
+                description: t('landing.howItWorks.steps.analysis.description'),
                 icon: <SparklesIcon className="w-8 h-8" />,
               },
               {
                 step: "03",
-                title: "Start Your Journey",
-                description:
-                  "Receive personalized learning paths, job recommendations, and ongoing guidance to achieve your career goals.",
+                title: t('landing.howItWorks.steps.journey.title'),
+                description: t('landing.howItWorks.steps.journey.description'),
                 icon: <BriefcaseIcon className="w-8 h-8" />,
               },
             ].map((step, index) => (
@@ -280,29 +275,29 @@ export default function LandingPage() {
       {/* Newsletter Section */}
       <section className="py-16 bg-gradient-to-r from-blue-600 to-indigo-700">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">Stay Updated on Career Trends</h2>
+          <h2 className="text-3xl font-bold text-white mb-4">{t('landing.newsletter.title')}</h2>
           <p className="text-blue-100 text-lg mb-8">
-            Get weekly insights on job market trends, skill demands, and career opportunities delivered to your inbox.
+            {t('landing.newsletter.subtitle')}
           </p>
 
           <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
             <Input
               type="email"
-              placeholder="Enter your email address"
+              placeholder={t('landing.newsletter.placeholder')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               className="flex-1 bg-white"
             />
             <Button type="submit" variant="secondary" size="lg" loading={isSubscribed}>
-              {isSubscribed ? "Subscribed!" : "Subscribe"}
+              {isSubscribed ? t('landing.newsletter.subscribed') : t('landing.newsletter.subscribe')}
             </Button>
           </form>
 
           {isSubscribed && (
             <div className="mt-4 flex items-center justify-center gap-2 text-green-200">
               <CheckIcon className="w-5 h-5" />
-              <span>Thank you for subscribing! Check your email for confirmation.</span>
+              <span>{t('landing.newsletter.thankYou')}</span>
             </div>
           )}
         </div>
@@ -311,20 +306,19 @@ export default function LandingPage() {
       {/* CTA Section */}
       <section className="py-24 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Ready to Discover Your Dream Career?</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">{t('landing.cta.title')}</h2>
           <p className="text-lg text-gray-600 mb-8 text-pretty">
-            Join thousands of students and professionals who have found their ideal career path with our AI-powered
-            guidance.
+            {t('landing.cta.subtitle')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/assessment">
               <Button size="lg" icon={<ArrowRightIcon className="w-5 h-5" />}>
-                Start Free Assessment
+                {t('landing.cta.startFree')}
               </Button>
             </Link>
             <Link href="/chat">
               <Button variant="outline" size="lg" icon={<SparklesIcon className="w-5 h-5 bg-transparent" />}>
-                Chat with AI Advisor
+                {t('landing.cta.chatWithAI')}
               </Button>
             </Link>
           </div>

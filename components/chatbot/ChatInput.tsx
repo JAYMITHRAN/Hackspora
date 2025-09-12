@@ -3,6 +3,7 @@
 import { useState, type KeyboardEvent } from "react"
 import { PaperAirplaneIcon } from "@heroicons/react/24/solid"
 import Button from "@/components/common/Button"
+import { useTranslation } from "@/lib/hooks/useTranslation"
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void
@@ -13,9 +14,12 @@ interface ChatInputProps {
 export default function ChatInput({
   onSendMessage,
   disabled = false,
-  placeholder = "Ask me about your career path...",
+  placeholder,
 }: ChatInputProps) {
+  const { t } = useTranslation()
   const [message, setMessage] = useState("")
+  
+  const defaultPlaceholder = placeholder || t('chat.input.placeholder')
 
   const handleSend = () => {
     if (message.trim() && !disabled) {
@@ -39,7 +43,7 @@ export default function ChatInput({
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder={placeholder}
+            placeholder={defaultPlaceholder}
             disabled={disabled}
             rows={1}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
@@ -52,7 +56,7 @@ export default function ChatInput({
           icon={<PaperAirplaneIcon className="w-4 h-4" />}
           size="md"
         >
-          Send
+          {t('chat.input.send')}
         </Button>
       </div>
     </div>

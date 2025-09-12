@@ -1,0 +1,226 @@
+{
+  "navbar": {
+    "title": "Hackspora",
+    "home": "Home",
+    "assessment": "Assessment",
+    "chat": "Chat",
+    "jobs": "Jobs",
+    "results": "Results"
+  },
+  "chat": {
+    "title": "AI Career Advisor",
+    "status": {
+      "online": "Online • Ready to help",
+      "thinking": "thinking"
+    },
+    "welcome": {
+      "title": "Hello! I'm your AI career advisor.",
+      "subtitle": "I've analyzed your assessment and I'm here to help you explore career paths, answer questions, and provide personalized guidance.",
+      "profile": "Based on your profile, I can see you have strong interests in design and technology. I've identified several career paths that align well with your skills and interests.",
+      "whatToExplore": "What would you like to explore first? You can ask me about:",
+      "topics": {
+        "careerRecommendations": "Specific career recommendations",
+        "skillsDevelopment": "Skills you need to develop",
+        "learningResources": "Learning resources and courses",
+        "jobMarketInsights": "Job market insights",
+        "nextSteps": "Next steps in your career journey"
+      },
+      "cta": "Feel free to ask me anything!"
+    },
+    "input": {
+      "placeholder": "Ask me about your career path...",
+      "send": "Send"
+    },
+    "thinking": {
+      "analyzing": "Analyzing your question and preparing a response...",
+      "dots": "thinking"
+    },
+    "quickReplies": {
+      "showResources": "Show Resources",
+      "jobUpdates": "Job Updates",
+      "topCareers": "Top Careers"
+    },
+    "sidebar": {
+      "title": "Profile & Roadmap",
+      "profile": {
+        "interests": "Interests",
+        "topSkills": "Top Skills"
+      },
+      "careers": {
+        "title": "Recommended Careers",
+        "match": "match",
+        "viewAll": "View All"
+      },
+      "roadmap": {
+        "title": "AI Roadmap",
+        "steps": {
+          "assessment": {
+            "title": "Complete Assessment",
+            "description": "Understand your profile",
+            "status": "completed"
+          },
+          "explore": {
+            "title": "Explore Careers",
+            "description": "Chat with AI advisor",
+            "status": "current"
+          },
+          "skills": {
+            "title": "Skill Development",
+            "description": "Build required skills",
+            "status": "upcoming"
+          },
+          "applications": {
+            "title": "Job Applications",
+            "description": "Apply to positions",
+            "status": "upcoming"
+          }
+        }
+      },
+      "actions": {
+        "title": "Quick Actions",
+        "viewDashboard": "View Dashboard",
+        "changeProfile": "Change Profile",
+        "retakeAssessment": "Retake Assessment"
+      }
+    },
+    "jobFeed": {
+      "title": "Job Feed",
+      "latestJobs": "Latest Jobs",
+      "internships": "Internships",
+      "hideJobs": "Hide Jobs",
+      "showJobs": "Show Jobs"
+    },
+    "buttons": {
+      "clearChat": "Clear Chat"
+    },
+    "modal": {
+      "changeProfile": {
+        "title": "Change Profile",
+        "description": "You can update your profile information or retake the assessment to get new recommendations.",
+        "retakeAssessment": "Retake Assessment",
+        "cancel": "Cancel"
+      }
+    }
+  },
+  "assessment": {
+    "title": "Career Assessment",
+    "subtitle": "Discover your ideal career path through our comprehensive assessment",
+    "startButton": "Start Assessment",
+    "progress": "Progress",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit Assessment",
+    "sections": {
+      "personal": "Personal Information",
+      "interests": "Interests & Passions",
+      "skills": "Skills Assessment",
+      "values": "Work Values",
+      "goals": "Career Goals"
+    }
+  },
+  "jobs": {
+    "title": "Job Opportunities",
+    "subtitle": "Find your next career opportunity",
+    "search": "Search jobs...",
+    "filter": "Filter",
+    "apply": "Apply",
+    "viewDetails": "View Details"
+  },
+  "results": {
+    "title": "Your Career Dashboard",
+    "subtitle": "Personalized insights and recommendations based on your assessment",
+    "overview": "Overview",
+    "recommendations": "Career Recommendations",
+    "skills": "Skills Analysis",
+    "roadmap": "Career Roadmap"
+  },
+  "landing": {
+    "hero": {
+      "badge": "AI-Powered Career Guidance",
+      "title": "Your Future Career Starts",
+      "titleHighlight": "Here",
+      "typewriter": {
+        "text1": "Discover your dream career with AI",
+        "text2": "Get personalized career recommendations",
+        "text3": "Build skills for your future success",
+        "text4": "Connect with top employers worldwide"
+      },
+      "cta": {
+        "startAssessment": "Start Assessment",
+        "tryDemo": "Try Demo Persona"
+      },
+      "features": {
+        "freeAssessment": "Free Assessment",
+        "instantResults": "Instant Results",
+        "aiPowered": "AI-Powered"
+      }
+    },
+    "socialProof": {
+      "title": "Trusted by Students Worldwide",
+      "subtitle": "Join thousands who have discovered their ideal career path",
+      "partneredWith": "Partnered with leading companies"
+    },
+    "features": {
+      "title": "Everything You Need to Find Your Perfect Career",
+      "subtitle": "Our AI-powered platform provides comprehensive career guidance tailored to your unique profile and aspirations.",
+      "items": {
+        "aiAdvisor": {
+          "title": "AI Career Advisor",
+          "description": "Get personalized career recommendations powered by advanced AI algorithms that understand your unique skills and interests."
+        },
+        "skillGap": {
+          "title": "Skill Gap Analysis",
+          "description": "Identify exactly what skills you need to develop for your target career with detailed gap analysis and learning roadmaps."
+        },
+        "jobUpdates": {
+          "title": "Live Job Updates",
+          "description": "Stay updated with the latest job opportunities that match your profile and career goals in real-time."
+        }
+      }
+    },
+    "howItWorks": {
+      "title": "How It Works",
+      "subtitle": "Get started in just 3 simple steps",
+      "steps": {
+        "assessment": {
+          "title": "Take Assessment",
+          "description": "Complete our comprehensive career assessment to help us understand your skills, interests, and goals."
+        },
+        "analysis": {
+          "title": "Get AI Analysis",
+          "description": "Our AI analyzes your responses and matches you with careers that align with your profile and market demand."
+        },
+        "journey": {
+          "title": "Start Your Journey",
+          "description": "Receive personalized learning paths, job recommendations, and ongoing guidance to achieve your career goals."
+        }
+      }
+    },
+    "newsletter": {
+      "title": "Stay Updated on Career Trends",
+      "subtitle": "Get weekly insights on job market trends, skill demands, and career opportunities delivered to your inbox.",
+      "placeholder": "Enter your email address",
+      "subscribe": "Subscribe",
+      "subscribed": "Subscribed!",
+      "thankYou": "Thank you for subscribing! Check your email for confirmation."
+    },
+    "cta": {
+      "title": "Ready to Discover Your Dream Career?",
+      "subtitle": "Join thousands of students and professionals who have found their ideal career path with our AI-powered guidance.",
+      "startFree": "Start Free Assessment",
+      "chatWithAI": "Chat with AI Advisor"
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "close": "Close",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "finish": "Finish"
+  }
+}

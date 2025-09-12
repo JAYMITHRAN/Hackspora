@@ -4,20 +4,23 @@ import { useState } from "react"
 import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
 import Button from "@/components/common/Button"
+import LanguageSwitcher from "@/components/common/LanguageSwitcher"
+import { useTranslation } from "@/lib/hooks/useTranslation"
 import { Bars3Icon, XMarkIcon, SparklesIcon } from "@heroicons/react/24/outline"
 import { cn } from "@/lib/utils"
-
-const navigation = [
-  { name: "Home", href: "/" },
-  { name: "Assessment", href: "/assessment" },
-  { name: "Chat", href: "/chat" },
-  { name: "Results", href: "/results" },
-  { name: "Jobs", href: "/jobs" },
-]
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const pathname = usePathname()
+  const { t } = useTranslation()
+
+  const navigation = [
+    { name: t('navbar.home'), href: "/" },
+    { name: t('navbar.assessment'), href: "/assessment" },
+    { name: t('navbar.chat'), href: "/chat" },
+    { name: t('navbar.results'), href: "/results" },
+    { name: t('navbar.jobs'), href: "/jobs" },
+  ]
 
   return (
     <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
@@ -49,6 +52,7 @@ export default function Navbar() {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
+            <LanguageSwitcher />
             <Button variant="outline" size="sm">
               Sign In
             </Button>
@@ -87,6 +91,9 @@ export default function Navbar() {
               </Link>
             ))}
             <div className="pt-4 pb-2 space-y-2">
+              <div className="px-3 py-2">
+                <LanguageSwitcher />
+              </div>
               <Button variant="outline" size="sm" className="w-full bg-transparent">
                 Sign In
               </Button>

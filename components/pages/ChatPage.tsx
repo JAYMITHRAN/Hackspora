@@ -13,6 +13,7 @@ import Card from "@/components/common/Card"
 import Modal from "@/components/common/Modal"
 import { useChatbot } from "@/lib/hooks/useChatbot"
 import { useLocalStorage } from "@/lib/hooks/useLocalStorage"
+import { useTranslation } from "@/lib/hooks/useTranslation"
 import { getCareerRecommendations, type CareerRecommendation } from "@/lib/api/recommend"
 import {
   UserIcon,
@@ -44,6 +45,7 @@ interface AssessmentData {
 export default function ChatPage() {
   const router = useRouter()
   const { messages, isLoading, sendMessage, clearChat } = useChatbot()
+  const { t } = useTranslation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showJobFeed, setShowJobFeed] = useState(false)
   const [jobFeedType, setJobFeedType] = useState<"jobs" | "internships">("jobs")
@@ -90,17 +92,17 @@ export default function ChatPage() {
   const quickReplies = [
     {
       id: "resources",
-      text: "Show Resources",
+      text: t('chat.quickReplies.showResources'),
       icon: <AcademicCapIcon className="w-4 h-4" />,
     },
     {
       id: "jobs",
-      text: "Job Updates",
+      text: t('chat.quickReplies.jobUpdates'),
       icon: <BriefcaseIcon className="w-4 h-4" />,
     },
     {
       id: "careers",
-      text: "Top Careers",
+      text: t('chat.quickReplies.topCareers'),
       icon: <ChartBarIcon className="w-4 h-4" />,
     },
   ]
@@ -329,11 +331,11 @@ export default function ChatPage() {
                   <SparklesIcon className="w-4 h-4 text-white" />
                 </div>
                  <div>
-                   <h1 className="font-semibold text-gray-900">AI Career Advisor</h1>
+                   <h1 className="font-semibold text-gray-900">{t('chat.title')}</h1>
                    <p className="text-xs text-gray-500 flex items-center gap-1">
                      {isTyping ? (
                        <>
-                         <span>thinking</span>
+                         <span>{t('chat.status.thinking')}</span>
                          <div className="flex gap-0.5 items-center">
                            <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce [animation-delay:0ms] [animation-duration:1.4s]"></div>
                            <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce [animation-delay:200ms] [animation-duration:1.4s]"></div>
@@ -341,7 +343,7 @@ export default function ChatPage() {
                          </div>
                        </>
                      ) : (
-                       "Online • Ready to help"
+                       t('chat.status.online')
                      )}
                    </p>
                  </div>
@@ -378,8 +380,8 @@ export default function ChatPage() {
                        </div>
                        <div className="flex-1 min-w-0">
                          <div className="flex items-center gap-2 mb-2">
-                           <span className="font-medium text-sm text-gray-900">AI Career Advisor</span>
-                           <span className="text-xs text-gray-500">thinking</span>
+                           <span className="font-medium text-sm text-gray-900">{t('chat.title')}</span>
+                           <span className="text-xs text-gray-500">{t('chat.thinking.dots')}</span>
                            <div className="flex gap-1 items-center">
                              <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce [animation-delay:0ms] [animation-duration:1.4s]"></div>
                              <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce [animation-delay:200ms] [animation-duration:1.4s]"></div>
@@ -387,7 +389,7 @@ export default function ChatPage() {
                            </div>
                          </div>
                          <div className="text-sm text-gray-600 italic">
-                           Analyzing your question and preparing a response...
+                           {t('chat.thinking.analyzing')}
                          </div>
                        </div>
                      </div>
