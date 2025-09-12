@@ -357,46 +357,161 @@ interface SkillsStepProps {
 }
 
 function SkillsStep({ skillRatings, setSkillRatings }: SkillsStepProps) {
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
+  const [isComplete, setIsComplete] = useState(false)
+
+  const skillAssessmentQuestions = [
+    {
+      id: 1,
+      question: "How comfortable are you with learning new technologies and adapting to changes?",
+      skill: "Adaptability",
+      options: [
+        { value: 2, label: "I find it challenging to adapt to new technologies" },
+        { value: 5, label: "I can learn new tools with some guidance" },
+        { value: 8, label: "I adapt well to most technological changes" },
+        { value: 10, label: "I actively seek out and embrace new technologies" },
+      ],
+    },
+    {
+      id: 2,
+      question: "Rate your ability to effectively communicate complex ideas to others",
+      skill: "Communication",
+      options: [
+        { value: 2, label: "I struggle to explain technical concepts" },
+        { value: 5, label: "I can communicate basic ideas clearly" },
+        { value: 8, label: "I'm good at explaining complex topics" },
+        { value: 10, label: "I excel at presenting and documenting ideas" },
+      ],
+    },
+    {
+      id: 3,
+      question: "How would you rate your problem-solving and analytical thinking skills?",
+      skill: "Problem Solving",
+      options: [
+        { value: 2, label: "I often need help solving problems" },
+        { value: 5, label: "I can solve routine problems independently" },
+        { value: 8, label: "I'm good at breaking down complex problems" },
+        { value: 10, label: "I excel at finding innovative solutions" },
+      ],
+    },
+    {
+      id: 4,
+      question: "Assess your ability to work collaboratively in team environments",
+      skill: "Teamwork",
+      options: [
+        { value: 2, label: "I prefer working independently" },
+        { value: 5, label: "I can work well in most team settings" },
+        { value: 8, label: "I actively contribute to team success" },
+        { value: 10, label: "I often take leadership roles in teams" },
+      ],
+    },
+    {
+      id: 5,
+      question: "Rate your project management and organizational skills",
+      skill: "Organization",
+      options: [
+        { value: 2, label: "I sometimes struggle with deadlines" },
+        { value: 5, label: "I can manage my own tasks effectively" },
+        { value: 8, label: "I'm good at organizing team projects" },
+        { value: 10, label: "I excel at managing complex projects" },
+      ],
+    },
+  ]
+
   const handleSkillChange = (skill: string, value: number) => {
     setSkillRatings({ ...skillRatings, [skill]: value })
   }
+
+  const handleNextQuestion = () => {
+    if (currentQuestionIndex < skillAssessmentQuestions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1)
+    } else {
+      setIsComplete(true)
+    }
+  }
+
+  const handlePreviousQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1)
+    }
+  }
+
+  const currentQuestion = skillAssessmentQuestions[currentQuestionIndex]
+  const hasAnswer = skillRatings[currentQuestion.skill] !== undefined
 
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
         <h2 className="text-2xl font-semibold text-gray-900 mb-2">Rate your skills</h2>
-        <p className="text-gray-600">
-          Be honest about your current skill level - this helps us recommend the right path
-        </p>
+        <p className="text-gray-600">Select the option that best describes your current skill level</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {SKILL_CATEGORIES.map((skill) => (
-          <Slider
-            key={skill}
-            label={skill}
-            value={skillRatings[skill] || 5}
-            onChange={(value) => handleSkillChange(skill, value)}
-            min={1}
-            max={10}
-            step={1}
-          />
-        ))}
-      </div>
+      {/* Question Card */}
+      <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-medium text-gray-900">
+              Question {currentQuestionIndex + 1} of {skillAssessmentQuestions.length}
+            </h3>
+            <span className="text-sm text-gray-500">Skill: {currentQuestion.skill}</span>
+          </div>
 
-      <div className="bg-blue-50 p-4 rounded-lg">
-        <h3 className="font-medium text-blue-900 mb-2">Skill Rating Guide:</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-blue-800">
-          <div>
-            <strong>1-3:</strong> Beginner - Limited experience
-          </div>
-          <div>
-            <strong>4-6:</strong> Intermediate - Some experience
-          </div>
-          <div>
-            <strong>7-10:</strong> Advanced - Strong experience
+          <p className="text-gray-700 font-medium">{currentQuestion.question}</p>
+
+          <div className="space-y-3 mt-4">
+            {currentQuestion.options.map((option, optionIndex) => (
+              <label
+                key={optionIndex}
+                className={`flex items-center p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer ${
+                  skillRatings[currentQuestion.skill] === option.value
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-200 hover:border-gray-300"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name={`skill-${currentQuestion.skill}`}
+                  value={option.value}
+                  checked={skillRatings[currentQuestion.skill] === option.value}
+                  onChange={() => handleSkillChange(currentQuestion.skill, option.value)}
+                  className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                />
+                <span className="ml-3 text-gray-700">{option.label}</span>
+              </label>
+            ))}
           </div>
         </div>
+      </div>
+
+      {/* Navigation */}
+      <div className="flex justify-between mt-6">
+        <Button
+          variant="outline"
+          onClick={handlePreviousQuestion}
+          // disabled={currentQuestionIndex === 0}
+          icon={<ArrowLeftIcon className="w-4 h-4" />}
+        >
+          Previous
+        </Button>
+
+        <div className="flex gap-2">
+          {skillAssessmentQuestions.map((_, index) => (
+            <div
+              key={index}
+              className={`w-2 h-2 rounded-full ${
+                index === currentQuestionIndex ? "bg-blue-600" : "bg-gray-300"
+              }`}
+            />
+          ))}
+        </div>
+
+        <Button
+          onClick={handleNextQuestion}
+          // disabled={!hasAnswer}
+          icon={<ArrowRightIcon className="w-4 h-4" />}
+        >
+          {currentQuestionIndex === skillAssessmentQuestions.length - 1 ? "Finish" : "Next"}
+        </Button>
       </div>
     </div>
   )
