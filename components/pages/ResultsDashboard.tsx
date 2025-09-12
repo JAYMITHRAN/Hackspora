@@ -198,6 +198,16 @@ export default function ResultsDashboard() {
             <Button variant="outline" onClick={handleShare} icon={<ShareIcon className="w-4 h-4 bg-transparent" />}>
               Share Results
             </Button>
+            <Button
+              onClick={() => {
+                // Save the top career to localStorage for the jobs page
+                localStorage.setItem('selected-career', summary?.topCareer.title || '')
+                router.push('/jobs')
+              }}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Find Jobs
+            </Button>
           </div>
         </div>
 
