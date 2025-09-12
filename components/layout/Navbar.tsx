@@ -20,6 +20,7 @@ export default function Navbar() {
     { name: t('navbar.chat'), href: "/chat" },
     { name: t('navbar.results'), href: "/results" },
     { name: t('navbar.jobs'), href: "/jobs" },
+    { name: t('navbar.resume'), href: "/resume" },
   ]
 
   return (

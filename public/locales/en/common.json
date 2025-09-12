@@ -5,7 +5,8 @@
     "assessment": "Assessment",
     "chat": "Chat",
     "jobs": "Jobs",
-    "results": "Results"
+    "results": "Results",
+    "resume": "Resume"
   },
   "chat": {
     "title": "AI Career Advisor",
@@ -209,6 +210,24 @@
       "subtitle": "Join thousands of students and professionals who have found their ideal career path with our AI-powered guidance.",
       "startFree": "Start Free Assessment",
       "chatWithAI": "Chat with AI Advisor"
+    }
+  },
+  "resume": {
+    "title": "Resume Tools",
+    "subtitle": "Build and analyze your resume with AI-powered tools",
+    "tabs": {
+      "builder": "Resume Builder",
+      "analyzer": "Resume Analyzer"
+    },
+    "builder": {
+      "title": "Resume Builder",
+      "subtitle": "Create a professional resume with our AI-powered builder",
+      "placeholder": "Resume Builder content will be implemented here..."
+    },
+    "analyzer": {
+      "title": "Resume Analyzer", 
+      "subtitle": "Get AI-powered feedback on your resume",
+      "placeholder": "Resume Analyzer content will be implemented here..."
     }
   },
   "common": {
