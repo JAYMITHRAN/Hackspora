@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation"
 import Button from "@/components/common/Button"
 import Card from "@/components/common/Card"
 import ProgressTracker from "@/components/common/ProgressTracker"
-import { Input, Select, Slider, CheckboxCards } from "@/components/common/FormField"
+import { Input, Select, CheckboxCards } from "@/components/common/FormField"
 import Navbar from "@/components/layout/Navbar"
 import { useLocalStorage } from "@/lib/hooks/useLocalStorage"
 import { submitAssessment, type AssessmentData } from "@/lib/api/assess"
-import { EDUCATION_LEVELS, INTEREST_CATEGORIES, SKILL_CATEGORIES } from "@/lib/utils/constants"
+import { EDUCATION_LEVELS, INTEREST_CATEGORIES } from "@/lib/utils/constants"
 import { ArrowLeftIcon, ArrowRightIcon, CheckIcon } from "@heroicons/react/24/outline"
 import { cn } from "@/lib/utils"
 
@@ -20,26 +20,10 @@ interface AssessmentStep {
 }
 
 const ASSESSMENT_STEPS: AssessmentStep[] = [
-  {
-    id: "personal",
-    title: "Personal Info",
-    description: "Tell us about yourself",
-  },
-  {
-    id: "interests",
-    title: "Interests",
-    description: "What excites you?",
-  },
-  {
-    id: "skills",
-    title: "Skills",
-    description: "Rate your abilities",
-  },
-  {
-    id: "summary",
-    title: "Summary",
-    description: "Review & submit",
-  },
+  { id: "personal", title: "Personal Info", description: "Tell us about yourself" },
+  { id: "interests", title: "Interests", description: "What excites you?" },
+  { id: "skills", title: "Skills", description: "Rate your abilities" },
+  { id: "summary", title: "Summary", description: "Review & submit" },
 ]
 
 export default function AssessmentPage() {
@@ -67,9 +51,7 @@ export default function AssessmentPage() {
   })
 
   const [selectedInterests, setSelectedInterests] = useState<string[]>(formData.interests || [])
-  const [skillRatings, setSkillRatings] = useState<Record<string, number>>(
-    formData.skills || SKILL_CATEGORIES.reduce((acc, skill) => ({ ...acc, [skill]: 5 }), {}),
-  )
+  const [skillRatings, setSkillRatings] = useState<Record<string, number>>(formData.skills || {})
 
   useEffect(() => {
     const newFormData = {
@@ -92,7 +74,7 @@ export default function AssessmentPage() {
     personalInfo.location,
     selectedInterests,
     skillRatings,
-  ]) // Removed setFormData from dependencies
+  ])
 
   const handleNext = () => {
     if (currentStep < ASSESSMENT_STEPS.length) {
@@ -139,7 +121,11 @@ export default function AssessmentPage() {
       case 2:
         return selectedInterests.length >= 2
       case 3:
-        return Object.keys(skillRatings).length === SKILL_CATEGORIES.length
+        // ✅ FIX: validate that all 5 skills have answers
+        return (
+          Object.keys(skillRatings).length === 5 &&
+          Object.values(skillRatings).every((rating) => rating > 0)
+        )
       case 4:
         return true
       default:
@@ -243,7 +229,8 @@ export default function AssessmentPage() {
   )
 }
 
-// Step Components
+/* ------------------------- Step Components -------------------------- */
+
 interface PersonalInfoStepProps {
   personalInfo: {
     name: string
@@ -358,7 +345,6 @@ interface SkillsStepProps {
 
 function SkillsStep({ skillRatings, setSkillRatings }: SkillsStepProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
-  const [isComplete, setIsComplete] = useState(false)
 
   const skillAssessmentQuestions = [
     {
@@ -425,8 +411,6 @@ function SkillsStep({ skillRatings, setSkillRatings }: SkillsStepProps) {
   const handleNextQuestion = () => {
     if (currentQuestionIndex < skillAssessmentQuestions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1)
-    } else {
-      setIsComplete(true)
     }
   }
 
@@ -437,7 +421,6 @@ function SkillsStep({ skillRatings, setSkillRatings }: SkillsStepProps) {
   }
 
   const currentQuestion = skillAssessmentQuestions[currentQuestionIndex]
-  const hasAnswer = skillRatings[currentQuestion.skill] !== undefined
 
   return (
     <div className="space-y-6">
@@ -485,12 +468,7 @@ function SkillsStep({ skillRatings, setSkillRatings }: SkillsStepProps) {
 
       {/* Navigation */}
       <div className="flex justify-between mt-6">
-        <Button
-          variant="outline"
-          onClick={handlePreviousQuestion}
-          // disabled={currentQuestionIndex === 0}
-          icon={<ArrowLeftIcon className="w-4 h-4" />}
-        >
+        <Button variant="outline" onClick={handlePreviousQuestion} icon={<ArrowLeftIcon className="w-4 h-4" />}>
           Previous
         </Button>
 
@@ -505,11 +483,7 @@ function SkillsStep({ skillRatings, setSkillRatings }: SkillsStepProps) {
           ))}
         </div>
 
-        <Button
-          onClick={handleNextQuestion}
-          // disabled={!hasAnswer}
-          icon={<ArrowRightIcon className="w-4 h-4" />}
-        >
+        <Button onClick={handleNextQuestion} icon={<ArrowRightIcon className="w-4 h-4" />}>
           {currentQuestionIndex === skillAssessmentQuestions.length - 1 ? "Finish" : "Next"}
         </Button>
       </div>
@@ -530,112 +504,76 @@ interface SummaryStepProps {
 }
 
 function SummaryStep({ personalInfo, selectedInterests, skillRatings }: SummaryStepProps) {
-  const getEducationLabel = (value: string) => {
-    return EDUCATION_LEVELS.find((level) => level.value === value)?.label || value
-  }
+  const getEducationLabel = (value: string) =>
+    EDUCATION_LEVELS.find((level) => level.value === value)?.label || value
 
-  const getInterestLabels = (values: string[]) => {
-    return values.map((value) => INTEREST_CATEGORIES.find((cat) => cat.value === value)?.label || value)
-  }
-
-  const getTopSkills = (ratings: Record<string, number>) => {
-    return Object.entries(ratings)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 5)
-      .map(([skill, rating]) => ({ skill, rating }))
-  }
+  const getExperienceLabel = (value: string) =>
+    ({ none: "No Experience", entry: "0-2 years", mid: "3-5 years", senior: "5+ years" }[value] || value)
 
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-2">Review your assessment</h2>
-        <p className="text-gray-600">Make sure everything looks correct before submitting</p>
+        <h2 className="text-2xl font-semibold text-gray-900 mb-2">Review Your Information</h2>
+        <p className="text-gray-600">Please check your details before submitting</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Personal Information */}
-        <Card className="p-6">
-          <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-            Personal Information
-          </h3>
-          <div className="space-y-3 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Name:</span>
-              <span className="font-medium">{personalInfo.name}</span>
+      <div className="grid gap-6">
+        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Personal Information</h3>
+          <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <dt className="text-sm text-gray-500">Name</dt>
+              <dd className="font-medium text-gray-900">{personalInfo.name}</dd>
             </div>
-            {personalInfo.age && (
-              <div className="flex justify-between">
-                <span className="text-gray-600">Age:</span>
-                <span className="font-medium">{personalInfo.age}</span>
-              </div>
-            )}
-            {personalInfo.location && (
-              <div className="flex justify-between">
-                <span className="text-gray-600">Location:</span>
-                <span className="font-medium">{personalInfo.location}</span>
-              </div>
-            )}
-            <div className="flex justify-between">
-              <span className="text-gray-600">Education:</span>
-              <span className="font-medium">{getEducationLabel(personalInfo.educationLevel)}</span>
+            <div>
+              <dt className="text-sm text-gray-500">Age</dt>
+              <dd className="font-medium text-gray-900">{personalInfo.age}</dd>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Experience:</span>
-              <span className="font-medium capitalize">{personalInfo.experience.replace("-", " ")}</span>
+            <div>
+              <dt className="text-sm text-gray-500">Location</dt>
+              <dd className="font-medium text-gray-900">{personalInfo.location}</dd>
             </div>
-          </div>
-        </Card>
+            <div>
+              <dt className="text-sm text-gray-500">Education Level</dt>
+              <dd className="font-medium text-gray-900">{getEducationLabel(personalInfo.educationLevel)}</dd>
+            </div>
+            <div>
+              <dt className="text-sm text-gray-500">Experience</dt>
+              <dd className="font-medium text-gray-900">{getExperienceLabel(personalInfo.experience)}</dd>
+            </div>
+          </dl>
+        </div>
 
-        {/* Interests */}
-        <Card className="p-6">
-          <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-            Interests ({selectedInterests.length})
-          </h3>
+        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Interests</h3>
           <div className="flex flex-wrap gap-2">
-            {getInterestLabels(selectedInterests).map((interest, index) => (
-              <span key={index} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
+            {selectedInterests.map((interest) => (
+              <span key={interest} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
                 {interest}
               </span>
             ))}
           </div>
-        </Card>
-      </div>
+        </div>
 
-      {/* Top Skills */}
-      <Card className="p-6">
-        <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-          Top Skills
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {getTopSkills(skillRatings).map(({ skill, rating }, index) => (
-            <div key={skill} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <span className="font-medium text-sm">{skill}</span>
-              <div className="flex items-center gap-2">
-                <div className="w-16 bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-green-500 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${(rating / 10) * 100}%` }}
-                  ></div>
+        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Skills Assessment</h3>
+          <div className="space-y-4">
+            {Object.entries(skillRatings).map(([skill, rating]) => (
+              <div key={skill} className="flex items-center justify-between">
+                <span className="font-medium text-gray-900">{skill}</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-32 bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-blue-600 h-2 rounded-full"
+                      style={{ width: `${(rating / 10) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-sm text-gray-600">{rating}/10</span>
                 </div>
-                <span className="text-sm font-medium text-gray-600">{rating}/10</span>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </Card>
-
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
-        <div className="flex items-center gap-3 mb-3">
-          <CheckIcon className="w-6 h-6 text-blue-600" />
-          <h3 className="font-semibold text-blue-900">Ready to discover your career path?</h3>
-        </div>
-        <p className="text-blue-800 text-sm">
-          Our AI will analyze your responses and provide personalized career recommendations. You'll then be able to
-          chat with our AI advisor for detailed guidance and next steps.
-        </p>
       </div>
     </div>
   )

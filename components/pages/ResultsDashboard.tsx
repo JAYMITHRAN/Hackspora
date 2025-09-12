@@ -120,17 +120,20 @@ export default function ResultsDashboard() {
   }
 
   // Prepare chart data
-  const skillsRadarData = summary.skillsAnalysis.strengths.slice(0, 6).map((skill) => ({
-    skill,
-    current: Math.floor(Math.random() * 3) + 7,
-    required: Math.floor(Math.random() * 2) + 8,
+const skillsRadarData = Object.entries(summary.progressMetrics)
+  .filter(([key]) => key !== "assessmentComplete") // only numeric fields
+  .map(([metric, value]) => ({
+    skill: metric,
+    current: typeof value === "number" ? value : 0,
+    required: 10, // Or derive from API if available
   }))
-
-  const careerScoresData = careers.slice(0, 5).map((career) => ({
-    name: career.title.split(" ").slice(0, 2).join(" "),
-    score: career.matchScore,
-    category: career.category,
-  }))
+ const careerScoresData = [
+  { name: "Software Dev", score: 80, category: "Tech" },
+  { name: "Data Science", score: 70, category: "Tech" },
+  { name: "Project Mgmt", score: 60, category: "Management" },
+  { name: "UX/UI", score: 40, category: "Design" },
+  { name: "Digital Mkt", score: 30, category: "Marketing" },
+];
 
   // Prepare accordion data for resources
   const accordionItems = careers.map((career) => ({
@@ -165,16 +168,7 @@ export default function ResultsDashboard() {
       {/* Confetti Animation */}
       {showConfetti && (
         <div className="fixed inset-0 pointer-events-none z-50">
-          <div className="absolute top-1/4 left-1/4 animate-bounce">🎉</div>
-          <div className="absolute top-1/3 right-1/4 animate-bounce" style={{ animationDelay: "200ms" }}>
-            ✨
-          </div>
-          <div className="absolute top-1/2 left-1/3 animate-bounce" style={{ animationDelay: "400ms" }}>
-            🎊
-          </div>
-          <div className="absolute top-2/3 right-1/3 animate-bounce" style={{ animationDelay: "600ms" }}>
-            🌟
-          </div>
+      
         </div>
       )}
 
@@ -214,7 +208,7 @@ export default function ResultsDashboard() {
                 </span>
                 <span className="text-2xl font-bold text-green-600">{summary.topCareer.matchScore}%</span>
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">{summary.topCareer.title}</h2>
+              <h2 className="text-2xl font-bold text-gray-900">{summary.topCareer.title.toUpperCase()}</h2>
               <p className="text-gray-600">{summary.topCareer.category}</p>
             </div>
           </div>
