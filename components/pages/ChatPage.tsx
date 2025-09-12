@@ -7,7 +7,6 @@ import Sidebar from "@/components/layout/Sidebar"
 import ChatMessage from "@/components/chatbot/ChatMessage"
 import ChatInput from "@/components/chatbot/ChatInput"
 import QuickReplies from "@/components/chatbot/QuickReplies"
-import ThinkingIndicator from "@/components/chatbot/ThinkingIndicator"
 import JobFeed from "@/components/dashboard/JobFeed"
 import Button from "@/components/common/Button"
 import Card from "@/components/common/Card"
@@ -33,6 +32,15 @@ interface ProfileData {
   topSkills: string[]
 }
 
+interface AssessmentData {
+  preferences?: {
+    name?: string
+  }
+  educationLevel?: string
+  interests?: string[]
+  skills?: Record<string, number>
+}
+
 export default function ChatPage() {
   const router = useRouter()
   const { messages, isLoading, sendMessage, clearChat } = useChatbot()
@@ -45,7 +53,7 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Get profile data from assessment
-  const [assessmentData] = useLocalStorage("assessment-data", {})
+  const [assessmentData] = useLocalStorage<AssessmentData>("assessment-data", {})
   const [profileData] = useState<ProfileData>({
     name: assessmentData.preferences?.name || "User",
     educationLevel: assessmentData.educationLevel || "Not specified",
@@ -209,10 +217,10 @@ export default function ChatPage() {
                     >
                       <h4 className="font-medium text-sm text-gray-900 mb-1">{career.title}</h4>
                       <p className="text-xs text-gray-600 mb-2 line-clamp-2">{career.description}</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-medium text-blue-600">{career.match}% match</span>
-                        <span className="text-xs text-gray-500">{career.salary}</span>
-                      </div>
+                       <div className="flex items-center justify-between">
+                         <span className="text-xs font-medium text-blue-600">{career.matchScore}% match</span>
+                         <span className="text-xs text-gray-500">{career.salaryRange}</span>
+                       </div>
                     </div>
                   ))}
                   {careerRecommendations.length > 3 && (
@@ -320,23 +328,23 @@ export default function ChatPage() {
                 <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
                   <SparklesIcon className="w-4 h-4 text-white" />
                 </div>
-                <div>
-                  <h1 className="font-semibold text-gray-900">AI Career Advisor</h1>
-                  <p className="text-xs text-gray-500 flex items-center gap-1">
-                    {isTyping ? (
-                      <>
-                        <span>thinking</span>
-                        <div className="flex gap-0.5 items-center">
-                          <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce [animation-delay:0ms] [animation-duration:1.4s]"></div>
-                          <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce [animation-delay:200ms] [animation-duration:1.4s]"></div>
-                          <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce [animation-delay:400ms] [animation-duration:1.4s]"></div>
-                        </div>
-                      </>
-                    ) : (
-                      "Online • Ready to help"
-                    )}
-                  </p>
-                </div>
+                 <div>
+                   <h1 className="font-semibold text-gray-900">AI Career Advisor</h1>
+                   <p className="text-xs text-gray-500 flex items-center gap-1">
+                     {isTyping ? (
+                       <>
+                         <span>thinking</span>
+                         <div className="flex gap-0.5 items-center">
+                           <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce [animation-delay:0ms] [animation-duration:1.4s]"></div>
+                           <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce [animation-delay:200ms] [animation-duration:1.4s]"></div>
+                           <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce [animation-delay:400ms] [animation-duration:1.4s]"></div>
+                         </div>
+                       </>
+                     ) : (
+                       "Online • Ready to help"
+                     )}
+                   </p>
+                 </div>
               </div>
             </div>
 
@@ -355,18 +363,38 @@ export default function ChatPage() {
             </div>
           </div>
 
-          <div className="flex flex-1 overflow-hidden">
-            {/* Chat Messages */}
-            <div className="flex-1 flex flex-col min-w-0">
-              <div className="flex-1 overflow-y-auto scroll-smooth">
-                <div className="max-w-4xl mx-auto px-4 py-4 space-y-4">
-                  {messages.map((message) => (
-                    <ChatMessage key={message.id} message={message} />
-                  ))}
-                  {isTyping && <ThinkingIndicator className="rounded-lg" />}
-                  <div ref={messagesEndRef} className="h-4" />
-                </div>
-              </div>
+           <div className="flex flex-1 overflow-hidden">
+             {/* Chat Messages */}
+             <div className="flex-1 flex flex-col min-w-0">
+               <div className="flex-1 overflow-y-auto scroll-smooth">
+                 <div className="max-w-4xl mx-auto px-4 py-4 space-y-4">
+                   {messages.map((message) => (
+                     <ChatMessage key={message.id} message={message} />
+                   ))}
+                   {isTyping && (
+                     <div className="flex gap-3 p-4 bg-gray-50 rounded-lg">
+                       <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                         <SparklesIcon className="w-4 h-4 text-white" />
+                       </div>
+                       <div className="flex-1 min-w-0">
+                         <div className="flex items-center gap-2 mb-2">
+                           <span className="font-medium text-sm text-gray-900">AI Career Advisor</span>
+                           <span className="text-xs text-gray-500">thinking</span>
+                           <div className="flex gap-1 items-center">
+                             <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce [animation-delay:0ms] [animation-duration:1.4s]"></div>
+                             <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce [animation-delay:200ms] [animation-duration:1.4s]"></div>
+                             <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce [animation-delay:400ms] [animation-duration:1.4s]"></div>
+                           </div>
+                         </div>
+                         <div className="text-sm text-gray-600 italic">
+                           Analyzing your question and preparing a response...
+                         </div>
+                       </div>
+                     </div>
+                   )}
+                   <div ref={messagesEndRef} className="h-4" />
+                 </div>
+               </div>
 
               {/* Quick Replies */}
               <div className="max-w-4xl mx-auto w-full px-4 py-2">

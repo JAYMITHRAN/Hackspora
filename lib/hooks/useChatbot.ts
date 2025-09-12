@@ -43,7 +43,7 @@ Feel free to ask me anything!`,
 
       try {
         // Send to API and get bot response
-        const botResponse = await sendChatMessage(content)
+        const botResponse = await sendChatMessage(content, conversationId)
         setMessages((prev) => [...prev, botResponse])
 
         if (!conversationId) {

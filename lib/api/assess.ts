@@ -90,14 +90,13 @@ export async function getAssessmentHistory(): Promise<any[]> {
   } catch (error) {
     console.error("Failed to fetch assessment history:", error)
 
-    // Fallback to local storage
     const localHistory = dataManager.getLocalStorage("last-assessment")
     return localHistory ? [localHistory] : []
   }
 }
 
 export async function retakeAssessment(): Promise<void> {
-  // Clear cached data
+
   dataManager.invalidate("assessment-history")
   dataManager.removeLocalStorage("assessment-data")
   dataManager.removeLocalStorage("last-assessment")
