@@ -122,22 +122,12 @@ export default function QuizCard() {
   }
 
   const handleStartQuiz = (quizId: string) => {
-    setSelectedQuiz(quizId)
-    setIsPlaying(true)
-    toast({
-      title: "Quiz Started!",
-      description: "Good luck with your quiz!",
+    // Route to quiz page with quiz parameters
+    const quizParams = new URLSearchParams({
+      type: quizId,
+      title: quizzes.find(q => q.id === quizId)?.title || 'Quiz'
     })
-    
-    // Simulate quiz completion after 3 seconds
-    setTimeout(() => {
-      setIsPlaying(false)
-      setSelectedQuiz(null)
-      toast({
-        title: "Quiz Completed!",
-        description: "Great job! You earned 100 points.",
-      })
-    }, 3000)
+    window.location.href = `/quiz?${quizParams.toString()}`
   }
 
   const renderQuizCard = (quiz: Quiz, isDaily = false) => {
@@ -227,33 +217,27 @@ export default function QuizCard() {
             </div>
           )}
 
-          <Button 
-            className={cn(
-              "w-full transition-all duration-300 group-hover:scale-105 transform",
-              isDaily 
-                ? "bg-orange-500 hover:bg-orange-600 text-white" 
-                : "bg-blue-600 hover:bg-blue-700 text-white",
-              isPlaying && selectedQuiz === quiz.id && "animate-pulse"
-            )}
-            disabled={isPlaying}
-          >
-            {isPlaying && selectedQuiz === quiz.id ? (
-              <>
-                <ClockIcon className="w-4 h-4 mr-2 animate-spin" />
-                Playing...
-              </>
-            ) : quiz.completed ? (
-              <>
-                <CheckCircleIcon className="w-4 h-4 mr-2" />
-                {t('gamification.quizzes.completed')}
-              </>
-            ) : (
-              <>
-                <PlayIcon className="w-4 h-4 mr-2" />
-                {t('gamification.quizzes.startQuiz')}
-              </>
-            )}
-          </Button>
+            <Button 
+              onClick={() => handleStartQuiz(quiz.id)}
+              className={cn(
+                "w-full transition-all duration-300 group-hover:scale-105 transform",
+                isDaily 
+                  ? "bg-orange-500 hover:bg-orange-600 text-white" 
+                  : "bg-blue-600 hover:bg-blue-700 text-white"
+              )}
+            >
+              {quiz.completed ? (
+                <>
+                  <CheckCircleIcon className="w-4 h-4 mr-2" />
+                  {t('gamification.quizzes.completed')}
+                </>
+              ) : (
+                <>
+                  <PlayIcon className="w-4 h-4 mr-2" />
+                  {t('gamification.quizzes.startQuiz')}
+                </>
+              )}
+            </Button>
         </CardContent>
       </Card>
     )
