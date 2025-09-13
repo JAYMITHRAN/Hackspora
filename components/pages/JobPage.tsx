@@ -236,7 +236,18 @@ export default function JobPage() {
         {/* Job Results */}
         <div className="space-y-4">
           {loading ? (
-            <p>Loading jobs...</p>
+            <div className="space-y-4">
+    {[...Array(10)].map((_, i) => (
+      <Card key={i} className="animate-pulse">
+        <div className="p-6">
+          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+          <div className="h-3 bg-gray-200 rounded w-1/2 mb-4"></div>
+          <div className="h-3 bg-gray-200 rounded w-full mb-2"></div>
+          <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+        </div>
+      </Card>
+    ))}
+  </div>
           ) : jobs.length === 0 ? (
             <Card className="text-center py-12">
               <BriefcaseIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
