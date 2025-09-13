@@ -262,6 +262,40 @@
   animation: achievement-unlock 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
+/* Transparent scrollbar */
+.scrollbar-transparent {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+.scrollbar-transparent::-webkit-scrollbar {
+  display: none; /* WebKit */
+}
+
+/* Alternative: Completely transparent scrollbar */
+.scrollbar-transparent-alt {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.scrollbar-transparent-alt::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+  background: transparent;
+}
+
+.scrollbar-transparent-alt::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-transparent-alt::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+.scrollbar-transparent-alt::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 /* Responsive cursor effects */
 @media (hover: none) {
   .hover-lift:hover {
