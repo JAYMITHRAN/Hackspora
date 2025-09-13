@@ -10,8 +10,10 @@ import Navbar from "@/components/layout/Navbar"
 import { useLocalStorage } from "@/lib/hooks/useLocalStorage"
 import { submitAssessment, type AssessmentData } from "@/lib/api/assess"
 import { EDUCATION_LEVELS, INTEREST_CATEGORIES } from "@/lib/utils/constants"
-import { ArrowLeftIcon, ArrowRightIcon, CheckIcon } from "@heroicons/react/24/outline"
+import { ArrowLeftIcon, ArrowRightIcon, CheckIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline"
 import { cn } from "@/lib/utils"
+import { useAssessment } from "@/lib/api/AssestmentContext"
+import { testApiConnection } from "@/lib/api/summary"
 
 interface AssessmentStep {
   id: string
@@ -31,6 +33,9 @@ export default function AssessmentPage() {
   const [currentStep, setCurrentStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [slideDirection, setSlideDirection] = useState<"left" | "right">("right")
+  const [apiStatus, setApiStatus] = useState<'unknown' | 'connected' | 'disconnected'>('unknown')
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  
 
   // Form data with localStorage persistence
   const [formData, setFormData] = useLocalStorage<Partial<AssessmentData>>("assessment-data", {
@@ -52,6 +57,19 @@ export default function AssessmentPage() {
 
   const [selectedInterests, setSelectedInterests] = useState<string[]>(formData.interests || [])
   const [skillRatings, setSkillRatings] = useState<Record<string, number>>(formData.skills || {})
+
+  // Check API connection on component mount
+  useEffect(() => {
+    const checkApi = async () => {
+      try {
+        const isConnected = await testApiConnection()
+        setApiStatus(isConnected ? 'connected' : 'disconnected')
+      } catch (error) {
+        setApiStatus('disconnected')
+      }
+    }
+    checkApi()
+  }, [])
 
   useEffect(() => {
     const newFormData = {
@@ -92,6 +110,8 @@ export default function AssessmentPage() {
 
   const handleSubmit = async () => {
     setIsSubmitting(true)
+    setSubmitError(null)
+    
     try {
       const assessmentData: AssessmentData = {
         educationLevel: personalInfo.educationLevel,
@@ -105,10 +125,37 @@ export default function AssessmentPage() {
         },
       }
 
+      console.log("Submitting assessment data:", assessmentData)
+
+      // Save assessment data to localStorage for debugging
+      localStorage.setItem('last-assessment', JSON.stringify({
+        timestamp: new Date().toISOString(),
+        data: {
+          name: personalInfo.name,
+          workExperience: `${personalInfo.experience} experience level`,
+          educationLevel: personalInfo.educationLevel,
+          interests: selectedInterests, // Fixed typo
+          skills: Object.fromEntries(
+            Object.entries(skillRatings).map(([skill, rating]) => [
+              skill.toLowerCase().replace(' ', '_'), 
+              rating > 7 ? 'Excellent' : rating > 5 ? 'Good' : 'Basic'
+            ])
+          ),
+        }
+      }))
+
       await submitAssessment(assessmentData)
-      router.push("/chat")
+      
+      // Redirect to results page
+      router.push("/results")
+      
     } catch (error) {
       console.error("Error submitting assessment:", error)
+      setSubmitError(
+        error instanceof Error 
+          ? `Submission failed: ${error.message}` 
+          : "Failed to submit assessment. Please try again."
+      )
     } finally {
       setIsSubmitting(false)
     }
@@ -121,11 +168,7 @@ export default function AssessmentPage() {
       case 2:
         return selectedInterests.length >= 2
       case 3:
-        // ✅ FIX: validate that all 5 skills have answers
-        return (
-          Object.keys(skillRatings).length === 5 &&
-          Object.values(skillRatings).every((rating) => rating > 0)
-        )
+        return Object.keys(skillRatings).length >= 3 // At least 3 skills rated
       case 4:
         return true
       default:
@@ -165,6 +208,7 @@ export default function AssessmentPage() {
               personalInfo={personalInfo}
               selectedInterests={selectedInterests}
               skillRatings={skillRatings}
+              apiStatus={apiStatus}
             />
           </div>
         )
@@ -178,6 +222,34 @@ export default function AssessmentPage() {
       <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* API Status Banner */}
+        {apiStatus === 'disconnected' && (
+          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="flex items-center gap-3">
+              <ExclamationTriangleIcon className="w-5 h-5 text-yellow-600" />
+              <div>
+                <p className="text-yellow-800 font-medium">API Connection Issue</p>
+                <p className="text-yellow-700 text-sm">
+                  Local Llama server not responding. Results will use sample data.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Submit Error Banner */}
+        {submitError && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center gap-3">
+              <ExclamationTriangleIcon className="w-5 h-5 text-red-600" />
+              <div>
+                <p className="text-red-800 font-medium">Submission Error</p>
+                <p className="text-red-700 text-sm">{submitError}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Career Assessment</h1>
@@ -220,7 +292,7 @@ export default function AssessmentPage() {
               loading={isSubmitting}
               icon={<CheckIcon className="w-4 h-4" />}
             >
-              Submit & Start Chat
+              {isSubmitting ? "Submitting..." : "Submit & View Results"}
             </Button>
           )}
         </div>
@@ -466,9 +538,21 @@ function SkillsStep({ skillRatings, setSkillRatings }: SkillsStepProps) {
         </div>
       </div>
 
+      {/* Progress indicator */}
+      <div className="text-center">
+        <p className="text-sm text-gray-500">
+          Skills completed: {Object.keys(skillRatings).length} / {skillAssessmentQuestions.length}
+        </p>
+      </div>
+
       {/* Navigation */}
       <div className="flex justify-between mt-6">
-        <Button variant="outline" onClick={handlePreviousQuestion} icon={<ArrowLeftIcon className="w-4 h-4" />}>
+        <Button
+          variant="outline"
+          onClick={handlePreviousQuestion}
+          disabled={currentQuestionIndex === 0}
+          icon={<ArrowLeftIcon className="w-4 h-4" />}
+        >
           Previous
         </Button>
 
@@ -483,8 +567,12 @@ function SkillsStep({ skillRatings, setSkillRatings }: SkillsStepProps) {
           ))}
         </div>
 
-        <Button onClick={handleNextQuestion} icon={<ArrowRightIcon className="w-4 h-4" />}>
-          {currentQuestionIndex === skillAssessmentQuestions.length - 1 ? "Finish" : "Next"}
+        <Button
+          onClick={handleNextQuestion}
+          disabled={currentQuestionIndex === skillAssessmentQuestions.length - 1}
+          icon={<ArrowRightIcon className="w-4 h-4" />}
+        >
+          Next
         </Button>
       </div>
     </div>
@@ -501,9 +589,10 @@ interface SummaryStepProps {
   }
   selectedInterests: string[]
   skillRatings: Record<string, number>
+  apiStatus: 'unknown' | 'connected' | 'disconnected'
 }
 
-function SummaryStep({ personalInfo, selectedInterests, skillRatings }: SummaryStepProps) {
+function SummaryStep({ personalInfo, selectedInterests, skillRatings, apiStatus }: SummaryStepProps) {
   const getEducationLabel = (value: string) =>
     EDUCATION_LEVELS.find((level) => level.value === value)?.label || value
 
@@ -517,6 +606,22 @@ function SummaryStep({ personalInfo, selectedInterests, skillRatings }: SummaryS
         <p className="text-gray-600">Please check your details before submitting</p>
       </div>
 
+      {/* API Status Info */}
+      <div className={`p-4 rounded-lg border ${
+        apiStatus === 'connected' 
+          ? 'bg-green-50 border-green-200' 
+          : 'bg-yellow-50 border-yellow-200'
+      }`}>
+        <div className="flex items-center gap-2">
+          <div className={`w-2 h-2 rounded-full ${
+            apiStatus === 'connected' ? 'bg-green-500' : 'bg-yellow-500'
+          }`} />
+          <span className="text-sm font-medium">
+            API Status: {apiStatus === 'connected' ? 'Connected' : 'Using Sample Data'}
+          </span>
+        </div>
+      </div>
+
       <div className="grid gap-6">
         <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Personal Information</h3>
@@ -527,11 +632,11 @@ function SummaryStep({ personalInfo, selectedInterests, skillRatings }: SummaryS
             </div>
             <div>
               <dt className="text-sm text-gray-500">Age</dt>
-              <dd className="font-medium text-gray-900">{personalInfo.age}</dd>
+              <dd className="font-medium text-gray-900">{personalInfo.age || 'Not specified'}</dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Location</dt>
-              <dd className="font-medium text-gray-900">{personalInfo.location}</dd>
+              <dd className="font-medium text-gray-900">{personalInfo.location || 'Not specified'}</dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Education Level</dt>
@@ -545,18 +650,23 @@ function SummaryStep({ personalInfo, selectedInterests, skillRatings }: SummaryS
         </div>
 
         <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Interests</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Interests ({selectedInterests.length} selected)</h3>
           <div className="flex flex-wrap gap-2">
             {selectedInterests.map((interest) => (
               <span key={interest} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
                 {interest}
               </span>
             ))}
+            {selectedInterests.length === 0 && (
+              <span className="text-gray-500 text-sm italic">No interests selected</span>
+            )}
           </div>
         </div>
 
         <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Skills Assessment</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">
+            Skills Assessment ({Object.keys(skillRatings).length} completed)
+          </h3>
           <div className="space-y-4">
             {Object.entries(skillRatings).map(([skill, rating]) => (
               <div key={skill} className="flex items-center justify-between">
@@ -568,10 +678,29 @@ function SummaryStep({ personalInfo, selectedInterests, skillRatings }: SummaryS
                       style={{ width: `${(rating / 10) * 100}%` }}
                     />
                   </div>
-                  <span className="text-sm text-gray-600">{rating}/10</span>
+                  <span className="text-sm text-gray-600 w-12">{rating}/10</span>
                 </div>
               </div>
             ))}
+            {Object.keys(skillRatings).length === 0 && (
+              <span className="text-gray-500 text-sm italic">No skills rated yet</span>
+            )}
+          </div>
+        </div>
+
+        {/* Debug Info */}
+        <div className="bg-gray-50 rounded-lg p-4">
+          <h4 className="text-sm font-medium text-gray-700 mb-2">Debug Information</h4>
+          <div className="text-xs text-gray-600 space-y-1">
+            <div>Form valid: {JSON.stringify({
+              name: !!personalInfo.name,
+              education: !!personalInfo.educationLevel,
+              experience: !!personalInfo.experience,
+              interests: selectedInterests.length >= 2,
+              skills: Object.keys(skillRatings).length >= 3
+            })}</div>
+            <div>Payload will be saved to localStorage as 'last-assessment'</div>
+            <div>Local Llama endpoint: http://localhost:5000/api</div>
           </div>
         </div>
       </div>

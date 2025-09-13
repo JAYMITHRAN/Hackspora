@@ -1,49 +1,49 @@
+import axios from "axios"
+import { title_for_user } from "./summary"
 export interface JobListing {
   id: string
   title: string
-  company: string
-  location: string
-  type: "full-time" | "part-time" | "internship" | "contract"
-  salaryRange: string
-  postedDate: Date
+  website: string
+  url: string
   description: string
-  requirements: string[]
-  remote: boolean
+  created_at: string
+  published_at: string
+  education_requirements?: string
+  experience_requirements?: string
 }
 
-export async function getJobListings(category?: string, type?: string) {
-  // Stub for backend integration
-  console.log("Fetching job listings:", { category, type })
+export interface JobSearchParams {
+  query?: string
+  page?: number
+  limit?: number
+}
 
-  // Simulate API call with dummy data
-  return new Promise<JobListing[]>((resolve) => {
-    setTimeout(() => {
-      resolve([
-        {
-          id: "job-1",
-          title: "Junior UX Designer",
-          company: "TechCorp",
-          location: "San Francisco, CA",
-          type: "full-time",
-          salaryRange: "$65k - $85k",
-          postedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-          description: "Join our design team to create amazing user experiences",
-          requirements: ["1-2 years experience", "Figma proficiency", "Portfolio required"],
-          remote: true,
-        },
-        {
-          id: "job-2",
-          title: "UX Design Intern",
-          company: "StartupXYZ",
-          location: "New York, NY",
-          type: "internship",
-          salaryRange: "$20/hour",
-          postedDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-          description: "Summer internship opportunity for aspiring UX designers",
-          requirements: ["Currently enrolled in design program", "Basic design skills"],
-          remote: false,
-        },
-      ])
-    }, 700)
-  })
+export async function getJobListings(params: JobSearchParams = {}): Promise<JobListing[]> {
+  try {
+    const { query = `${title_for_user.title}` } = params
+    console.log(params)
+    const res = await axios.get(`http://localhost:5000/api/job/${params.query}`, )
+
+    let data = res.data
+
+    // ✅ ensure data is always an array
+    if (!Array.isArray(data)) {
+      data = [data]
+    }
+
+    return data
+  } catch (error: any) {
+    console.error("Failed to fetch job listings:", error?.response?.data || error.message)
+    throw new Error("Failed to load job listings. Please try again.")
+  }
+}
+
+export async function getJobDetails(jobId: string): Promise<JobListing | null> {
+  try {
+    const res = await axios.get(`http://localhost:5000/api/job/${jobId}`)
+    return res.data || null
+  } catch (error) {
+    console.error("Failed to fetch job details:", error)
+    return null
+  }
 }

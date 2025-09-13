@@ -20,8 +20,56 @@ import {
   CheckIcon,
   ExclamationTriangleIcon,
   LightBulbIcon,
+  ExclamationCircleIcon,
 } from "@heroicons/react/24/outline"
 import { useRouter } from "next/navigation"
+
+// Fallback data when API fails
+const FALLBACK_SUMMARY: DashboardSummary = {
+  topCareer: {
+    title: "Software Developer",
+    category: "Technology",
+    matchScore: 85
+  },
+  progressMetrics: {
+    assessmentComplete: true,
+    resourcesViewed: 12,
+    skillsImproved: 8,
+    careerExplored: 5
+  },
+  skillsAnalysis: {
+    strengths: ["Problem Solving", "Logical Thinking", "Technical Skills"],
+    gaps: ["Communication", "Leadership", "Project Management"],
+    recommendations: [
+      "Take a communication course",
+      "Practice leadership skills in team projects",
+      "Learn project management methodologies"
+    ]
+  },
+  nextSteps: [
+    "Complete your skill assessments",
+    "Explore recommended learning resources",
+    "Connect with professionals in your field",
+    "Start building a portfolio"
+  ]
+}
+
+const FALLBACK_CAREERS: CareerRecommendation[] = [
+  {
+    id: "1",
+    title: "Software Developer",
+    category: "Technology",
+    matchScore: 85,
+    description: "Build and maintain software applications"
+  },
+  {
+    id: "2", 
+    title: "Data Scientist",
+    category: "Technology",
+    matchScore: 78,
+    description: "Analyze data to extract business insights"
+  }
+]
 
 export default function ResultsDashboard() {
   const router = useRouter()
@@ -29,42 +77,73 @@ export default function ResultsDashboard() {
   const [careers, setCareers] = useState<CareerRecommendation[]>([])
   const [resources, setResources] = useState<Record<string, LearningResource[]>>({})
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showConfetti, setShowConfetti] = useState(false)
   const [savedResources] = useLocalStorage<string[]>("saved-resources", [])
 
   useEffect(() => {
     const loadDashboardData = async () => {
       setLoading(true)
+      setError(null)
+      
       try {
-        // Load summary data
-        const summaryData = await getDashboardSummary()
+        console.log("Starting to load dashboard data...")
+        
+        // Load summary data with timeout and retry
+        let summaryData: DashboardSummary
+        try {
+          summaryData = await getDashboardSummary()
+          console.log("Summary data loaded:", summaryData)
+        } catch (summaryError) {
+          console.warn("Failed to load summary from API, using fallback:", summaryError )
+          summaryData = FALLBACK_SUMMARY
+          setError("Using sample data - API connection failed")
+        }
         setSummary(summaryData)
 
-        // Load career recommendations
-        const careerData = await getCareerRecommendations()
-        setCareers(careerData)
+        // Load career recommendations with fallback
+        let careerData: CareerRecommendation[]
+        try {
+          careerData = await Promise.race([
+            getCareerRecommendations(),
+            new Promise<never>((_, reject) => 
+              setTimeout(() => reject(new Error('Timeout')), 20000)
+            )
+          ])
+          console.log("Career data loaded:", careerData)
+        } catch (careerError) {
+          console.warn("Failed to load careers from API, using fallback:", careerError)
+          careerData = FALLBACK_CAREERS
+        }
 
-        // Load resources for each career
-        const resourcePromises = careerData.map(async (career) => {
-          const careerResources = await getCareerResources(career.id)
-          return { careerId: career.id, resources: careerResources }
-        })
-
-        const resourceResults = await Promise.all(resourcePromises)
-        const resourceMap = resourceResults.reduce(
-          (acc, { careerId, resources }) => {
-            acc[careerId] = resources
-            return acc
-          },
-          {} as Record<string, LearningResource[]>,
-        )
+        // Load resources for each career with fallback
+        const resourceMap: Record<string, LearningResource[]> = {}
+        for (const career of careerData) {
+          try {
+            const careerResources = await Promise.race([
+              getCareerResources(career.id),
+              new Promise<never>((_, reject) => 
+                setTimeout(() => reject(new Error('Timeout')), 25000)
+              )
+            ])
+            resourceMap[career.id] = careerResources
+          } catch (resourceError) {
+            console.warn(`Failed to load resources for ${career.title}:`, resourceError)
+            resourceMap[career.id] = [] // Empty array as fallback
+          }
+        }
         setResources(resourceMap)
 
         // Show confetti animation
         setShowConfetti(true)
         setTimeout(() => setShowConfetti(false), 3000)
+        
       } catch (error) {
-        console.error("Error loading dashboard data:", error)
+        console.error("Critical error loading dashboard data:", error)
+        setError("Failed to load dashboard data. Please try again.")
+        // Even on critical error, provide fallback data
+        setSummary(FALLBACK_SUMMARY)
+        setCareers(FALLBACK_CAREERS)
       } finally {
         setLoading(false)
       }
@@ -73,14 +152,16 @@ export default function ResultsDashboard() {
     loadDashboardData()
   }, [])
 
+  const handleRetry = () => {
+    window.location.reload()
+  }
+
   const handleExportPDF = () => {
-    // Dummy PDF export functionality
     console.log("Exporting to PDF...")
     alert("PDF export functionality would be implemented here!")
   }
 
   const handleShare = () => {
-    // Dummy share functionality
     navigator.clipboard.writeText(window.location.href)
     alert("Dashboard link copied to clipboard!")
   }
@@ -104,7 +185,7 @@ export default function ResultsDashboard() {
     )
   }
 
-  if (!summary) {
+  if (!summary && !error) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
@@ -119,22 +200,22 @@ export default function ResultsDashboard() {
     )
   }
 
-  // Prepare chart data
-const skillsRadarData = Object.entries(summary.progressMetrics)
-  .filter(([key]) => key !== "assessmentComplete") // only numeric fields
-  .map(([metric, value]) => ({
-    skill: metric,
-    current: typeof value === "number" ? value : 0,
-    required: 10, // Or derive from API if available
-  }))
- const careerScoresData = [
-  { name: "Software Dev", score: 80, category: "Tech" },
-  { name: "Data Science", score: 70, category: "Tech" },
-  { name: "Project Mgmt", score: 60, category: "Management" },
-  { name: "UX/UI", score: 40, category: "Design" },
-  { name: "Digital Mkt", score: 30, category: "Marketing" },
-];
+  // Prepare chart data - with safety checks
+  const skillsRadarData = summary ? Object.entries(summary.progressMetrics)
+    .filter(([key]) => key !== "assessmentComplete")
+    .map(([metric, value]) => ({
+      skill: metric,
+      current: typeof value === "number" ? value : 0,
+      required: 10,
+    })) : []
 
+const careerScoresData = [
+  { name: "Software Dev", score: 85, category: "Technology" },
+  { name: "Data Sci", score: 78, category: "Analytics" },
+  { name: "UX Design", score: 72, category: "Design" },
+  { name: "Project Mgr", score: 69, category: "Management" },
+  { name: "Marketing", score: 64, category: "Business" },
+];
   // Prepare accordion data for resources
   const accordionItems = careers.map((career) => ({
     id: career.id,
@@ -158,23 +239,31 @@ const skillsRadarData = Object.entries(summary.progressMetrics)
               <div className="text-xs text-gray-500">{resource.duration}</div>
             </div>
           </div>
-        )) || <p className="text-gray-500">No resources available</p>}
+        )) || <p className="text-gray-500">No resources available for this career</p>}
       </div>
     ),
   }))
 
   return (
     <div className="min-h-screen bg-gray-50 relative">
-      {/* Confetti Animation */}
-      {showConfetti && (
-        <div className="fixed inset-0 pointer-events-none z-50">
-      
-        </div>
-      )}
-
       <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Error Banner */}
+        {error && (
+          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="flex items-center gap-3">
+              <ExclamationCircleIcon className="w-5 h-5 text-yellow-600" />
+              <div className="flex-1">
+                <p className="text-yellow-800">{error}</p>
+              </div>
+              <Button variant="outline" size="sm" onClick={handleRetry}>
+                Retry
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -192,165 +281,178 @@ const skillsRadarData = Object.entries(summary.progressMetrics)
             <Button variant="outline" onClick={handleShare} icon={<ShareIcon className="w-4 h-4 bg-transparent" />}>
               Share Results
             </Button>
+            <Button
+              onClick={() => {
+                localStorage.setItem('selected-career', summary?.topCareer.title || '')
+                router.push('/jobs')
+              }}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Find Jobs
+            </Button>
           </div>
         </div>
 
-        {/* Top Career Highlight */}
-        <Card className="p-6 mb-8 bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-              <TrophyIcon className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                  Best Match
-                </span>
-                <span className="text-2xl font-bold text-green-600">{summary.topCareer.matchScore}%</span>
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900">{summary.topCareer.title.toUpperCase()}</h2>
-              <p className="text-gray-600">{summary.topCareer.category}</p>
-            </div>
-          </div>
-          <Button
-            onClick={() => router.push(`/career/${careers.find((c) => c.title === summary.topCareer.title)?.id}`)}
-            className="bg-green-600 hover:bg-green-700"
-          >
-            Explore This Career
-          </Button>
-        </Card>
-
-        {/* Progress Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="p-6 text-center">
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <CheckIcon className="w-6 h-6 text-blue-600" />
-            </div>
-            <div className="text-2xl font-bold text-gray-900 mb-1">
-              {summary.progressMetrics.assessmentComplete ? "Complete" : "Incomplete"}
-            </div>
-            <div className="text-sm text-gray-600">Assessment Status</div>
-          </Card>
-
-          <Card className="p-6 text-center">
-            <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <ChartBarIcon className="w-6 h-6 text-purple-600" />
-            </div>
-            <div className="text-2xl font-bold text-gray-900 mb-1">{summary.progressMetrics.resourcesViewed}</div>
-            <div className="text-sm text-gray-600">Resources Viewed</div>
-          </Card>
-
-          <Card className="p-6 text-center">
-            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <SparklesIcon className="w-6 h-6 text-green-600" />
-            </div>
-            <div className="text-2xl font-bold text-gray-900 mb-1">{summary.progressMetrics.skillsImproved}</div>
-            <div className="text-sm text-gray-600">Skills Improved</div>
-          </Card>
-
-          <Card className="p-6 text-center">
-            <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <TrophyIcon className="w-6 h-6 text-orange-600" />
-            </div>
-            <div className="text-2xl font-bold text-gray-900 mb-1">{summary.progressMetrics.careerExplored}</div>
-            <div className="text-sm text-gray-600">Careers Explored</div>
-          </Card>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* Skills Analysis */}
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Skills vs Requirements</h2>
-            <RadarChartWrapper data={skillsRadarData} />
-          </Card>
-
-          {/* Career Scores */}
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Career Match Scores</h2>
-            <BarChartWrapper data={careerScoresData} />
-          </Card>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* Skills Analysis Details */}
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Skills Analysis</h2>
-            <div className="space-y-6">
-              <div>
-                <h3 className="font-medium text-green-700 mb-3 flex items-center gap-2">
-                  <CheckIcon className="w-5 h-5" />
-                  Your Strengths
-                </h3>
-                <div className="space-y-2">
-                  {summary.skillsAnalysis.strengths.map((strength, index) => (
-                    <div key={index} className="flex items-center gap-2 p-2 bg-green-50 rounded">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-sm text-green-800">{strength}</span>
-                    </div>
-                  ))}
+        {summary && (
+          <>
+            {/* Top Career Highlight */}
+            <Card className="p-6 mb-8 bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                  <TrophyIcon className="w-6 h-6 text-white" />
                 </div>
-              </div>
-
-              <div>
-                <h3 className="font-medium text-red-700 mb-3 flex items-center gap-2">
-                  <ExclamationTriangleIcon className="w-5 h-5" />
-                  Areas to Improve
-                </h3>
-                <div className="space-y-2">
-                  {summary.skillsAnalysis.gaps.map((gap, index) => (
-                    <div key={index} className="flex items-center gap-2 p-2 bg-red-50 rounded">
-                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                      <span className="text-sm text-red-800">{gap}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h3 className="font-medium text-blue-700 mb-3 flex items-center gap-2">
-                  <LightBulbIcon className="w-5 h-5" />
-                  Recommendations
-                </h3>
-                <div className="space-y-2">
-                  {summary.skillsAnalysis.recommendations.map((rec, index) => (
-                    <div key={index} className="flex items-center gap-2 p-2 bg-blue-50 rounded">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <span className="text-sm text-blue-800">{rec}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          {/* Next Steps */}
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Your Next Steps</h2>
-            <div className="space-y-4">
-              {summary.nextSteps.map((step, index) => (
-                <div key={index} className="flex gap-3">
-                  <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0">
-                    {index + 1}
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                      Best Match
+                    </span>
+                    <span className="text-2xl font-bold text-green-600">{summary.topCareer.matchScore}%</span>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-gray-700">{step}</p>
-                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900">{summary.topCareer.title.toUpperCase()}</h2>
+                  <p className="text-gray-600">{summary.topCareer.category}</p>
                 </div>
-              ))}
-            </div>
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <Button onClick={() => router.push("/chat")} className="w-full">
-                Continue with AI Advisor
+              </div>
+              <Button
+                onClick={() => router.push(`/career/${careers.find((c) => c.title === summary.topCareer.title)?.id || '1'}`)}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                Explore This Career
               </Button>
-            </div>
-          </Card>
-        </div>
+            </Card>
 
-        {/* Resources by Career */}
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Learning Resources by Career</h2>
-          <Accordion items={accordionItems} />
-        </Card>
+            {/* Progress Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+              <Card className="p-6 text-center">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <CheckIcon className="w-6 h-6 text-blue-600" />
+                </div>
+                <div className="text-2xl font-bold text-gray-900 mb-1">
+                  {summary.progressMetrics.assessmentComplete ? "Complete" : "Incomplete"}
+                </div>
+                <div className="text-sm text-gray-600">Assessment Status</div>
+              </Card>
+
+              <Card className="p-6 text-center">
+                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <ChartBarIcon className="w-6 h-6 text-purple-600" />
+                </div>
+                <div className="text-2xl font-bold text-gray-900 mb-1">{summary.progressMetrics.resourcesViewed}</div>
+                <div className="text-sm text-gray-600">Resources Viewed</div>
+              </Card>
+
+              <Card className="p-6 text-center">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <SparklesIcon className="w-6 h-6 text-green-600" />
+                </div>
+                <div className="text-2xl font-bold text-gray-900 mb-1">{summary.progressMetrics.skillsImproved}</div>
+                <div className="text-sm text-gray-600">Skills Improved</div>
+              </Card>
+
+              <Card className="p-6 text-center">
+                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <TrophyIcon className="w-6 h-6 text-orange-600" />
+                </div>
+                <div className="text-2xl font-bold text-gray-900 mb-1">{summary.progressMetrics.careerExplored}</div>
+                <div className="text-sm text-gray-600">Careers Explored</div>
+              </Card>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+              {/* Skills Analysis */}
+              <Card className="p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">Skills vs Requirements</h2>
+                <RadarChartWrapper data={skillsRadarData} />
+              </Card>
+
+              {/* Career Scores */}
+              <Card className="p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">Career Match Scores</h2>
+                <BarChartWrapper data={careerScoresData} />
+              </Card>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+              {/* Skills Analysis Details */}
+              <Card className="p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">Skills Analysis</h2>
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="font-medium text-green-700 mb-3 flex items-center gap-2">
+                      <CheckIcon className="w-5 h-5" />
+                      Your Strengths
+                    </h3>
+                    <div className="space-y-2">
+                      {summary.skillsAnalysis.strengths.map((strength, index) => (
+                        <div key={index} className="flex items-center gap-2 p-2 bg-green-50 rounded">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <span className="text-sm text-green-800">{strength}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="font-medium text-red-700 mb-3 flex items-center gap-2">
+                      <ExclamationTriangleIcon className="w-5 h-5" />
+                      Areas to Improve
+                    </h3>
+                    <div className="space-y-2">
+                      {summary.skillsAnalysis.gaps.map((gap, index) => (
+                        <div key={index} className="flex items-center gap-2 p-2 bg-red-50 rounded">
+                          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                          <span className="text-sm text-red-800">{gap}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="font-medium text-blue-700 mb-3 flex items-center gap-2">
+                      <LightBulbIcon className="w-5 h-5" />
+                      Recommendations
+                    </h3>
+                    <div className="space-y-2">
+                      {summary.skillsAnalysis.recommendations?.map((rec, index) => (
+                        <div key={index} className="flex items-center gap-2 p-2 bg-blue-50 rounded">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          <span className="text-sm text-blue-800">{rec}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Next Steps */}
+              <Card className="p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">Your Next Steps</h2>
+                <div className="space-y-4">
+                  {summary.nextSteps.map((step, index) => (
+                    <div key={index} className="flex gap-3">
+                      <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-gray-700">{step}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <Button onClick={() => router.push("/chat")} className="w-full">
+                    Continue with AI Advisor
+                  </Button>
+                </div>
+              </Card>
+            </div>
+
+            {/* Resources by Career */}
+            <Card className="p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">Learning Resources by Career</h2>
+              <Accordion items={accordionItems} />
+            </Card>
+          </>
+        )}
       </div>
     </div>
   )
