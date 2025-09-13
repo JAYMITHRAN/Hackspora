@@ -94,7 +94,7 @@ The output must be fully structured in **text** with headings and bullet points,
     }
     console.log("Request Data:", requestData)
     // Send POST request
-    const { data } = await axios.post("http://172.16.17.171:11434/api/chat", requestData)
+    const { data } = await axios.post("http://10.34.128.170:11434/api/chat", requestData)
 
     console.log("Response: ",data)
     const botMessage: ChatMessage = {

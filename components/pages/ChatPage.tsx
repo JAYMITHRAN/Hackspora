@@ -146,7 +146,7 @@ export default function ChatPage() {
           title="Profile & Roadmap"
           className={`w-80 lg:w-72 fixed top-0 left-0 h-full z-40 bg-white border-r border-gray-200 transition-transform
             ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-            lg:static lg:translate-x-0
+            lg:static lg:translate-x-0 overflow-y-hidden
           `}
         >
           {/* Desktop close button */}
