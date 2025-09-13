@@ -21,6 +21,7 @@ export default function Navbar() {
     { name: t('navbar.results'), href: "/results" },
     { name: t('navbar.jobs'), href: "/jobs" },
     { name: t('navbar.resume'), href: "/resume" },
+    { name: t('navbar.gamification'), href: "/game" },
   ]
 
   return (
@@ -42,7 +43,7 @@ export default function Navbar() {
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  "text-sm font-medium transition-colors hover:text-blue-600",
+                  "text-sm font-medium transition-all duration-200 ease-in-out cursor-pointer hover:text-blue-600 hover:scale-105 transform",
                   pathname === item.href ? "text-blue-600" : "text-gray-700",
                 )}
               >
@@ -81,7 +82,7 @@ export default function Navbar() {
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  "block px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                  "block px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ease-in-out cursor-pointer hover:scale-105 transform",
                   pathname === item.href
                     ? "text-blue-600 bg-blue-50"
                     : "text-gray-700 hover:text-blue-600 hover:bg-gray-50",

@@ -6,7 +6,8 @@
     "chat": "Chat",
     "jobs": "Jobs",
     "results": "Results",
-    "resume": "Resume"
+    "resume": "Resume",
+    "gamification": "Games"
   },
   "chat": {
     "title": "AI Career Advisor",
@@ -228,6 +229,49 @@
       "title": "Resume Analyzer", 
       "subtitle": "Get AI-powered feedback on your resume",
       "placeholder": "Resume Analyzer content will be implemented here..."
+    }
+  },
+  "gamification": {
+    "title": "Career Games & Challenges",
+    "subtitle": "Level up your skills through interactive games and challenges",
+    "sections": {
+      "quizzes": "Quizzes & Challenges",
+      "careerGames": "Career Path Games"
+    },
+    "quizzes": {
+      "title": "Skill Quizzes",
+      "subtitle": "Test your knowledge and earn points",
+      "types": {
+        "coding": "Coding Skills",
+        "aptitude": "Aptitude Test",
+        "softSkills": "Soft Skills",
+        "industry": "Industry Knowledge"
+      },
+      "dailyChallenge": "Daily Challenge",
+      "weeklyChallenge": "Weekly Challenge",
+      "points": "Points",
+      "badges": "Badges",
+      "startQuiz": "Start Quiz",
+      "continueQuiz": "Continue Quiz",
+      "completed": "Completed"
+    },
+    "careerGames": {
+      "title": "Career Path Simulation",
+      "subtitle": "Explore different career paths through interactive games",
+      "selectRole": "Select a Role",
+      "unlockSkills": "Unlock Skills",
+      "progress": "Progress",
+      "levels": "Levels",
+      "achievements": "Achievements",
+      "playNow": "Play Now",
+      "resumeGame": "Resume Game"
+    },
+    "achievements": {
+      "firstQuiz": "First Quiz",
+      "perfectScore": "Perfect Score",
+      "streak": "Streak Master",
+      "explorer": "Career Explorer",
+      "skillMaster": "Skill Master"
     }
   },
   "common": {
