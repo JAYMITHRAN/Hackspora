@@ -1,0 +1,43 @@
+The repo mixes unfinished experiments and generated assets; key flows (assessment → recommendations → jobs → chat → resume) are not wired end to end, so the experience cannot currently produce real guidance without manual interventions.
+Backend routes compile-time fail because of malformed payload objects and global mutable state, so even the limited /api and /api/job endpoints cannot stay online without fixes (apps/backend/controllers/apiController.js#L1-L184, apps/backend/controllers/jobController.js#L1-L52).
+Frontend pages render rich UIs, but almost every data hook is a stub, cached mock, or broken API call, so user actions never persist or reach the backend (apps/frontend/lib/api/assess.ts#L26-L84, apps/frontend/lib/api/recommend.ts#L1-L136).
+The FastAPI LLM proxy is minimal and runs on assumptions (no streaming, no retries, misleading requirements), so backend ↔️ LLM behavior diverges quickly under load (services/llm/app.py#L1-L34, services/llm/requirements.txt#L1-L40).
+Build artifacts such as apps/frontend/.next are committed, there are zero automated tests, and the monorepo workspace omits the Python service, making collaboration brittle (apps/frontend/.next/app-build-manifest.json, pnpm-workspace.yaml#L1-L4).
+Backend Pending Work
+
+apiController shares a single content object across requests and still looks for intrests, so concurrent users overwrite each other's payloads and nothing matches the interests field the frontend sends (apps/backend/controllers/apiController.js#L1-L36). Replace with per-request DTO validation and correct field names.
+The payload literal inside postMethod has duplicated stream keys and stray braces, so Node throws before the server starts; even if it ran, it returns result.message.content (a JSON string), while the frontend expects an object with llmResponse (apps/backend/controllers/apiController.js#L140-L184 versus apps/frontend/lib/api/summary.ts#L54-L149).
+jobController hard-codes “Digital Marketing Specialist”, drops the user role from the system prompt, never closes the message object properly, and returns raw Markdown text, so /api/job/:role cannot deserialize on the client (apps/backend/controllers/jobController.js#L1-L52).
+The chat proxy simply forwards whatever array it receives without validating messages, model, or maximum token size, so bad inputs can crash the Ollama backend (apps/backend/controllers/chatController.js#L1-L40).
+CORS only whitelists specific methods and omits OPTIONS, which prevents browser preflight success for axios.post unless Express adds it implicitly; add explicit optionsSuccessStatus and logging (apps/backend/index.js#L9-L27).
+Frontend Pending Work
+
+AssessmentPage imports a non-existent useAssessment, mutates localStorage directly, and depends on submitAssessment which only resolves a timeout—no data ever reaches the backend or survives refresh beyond mocks (apps/frontend/components/pages/AssessmentPage.tsx#L12-L192, apps/frontend/lib/api/assess.ts#L26-L84).
+The “last assessment” object written in the page differs from what getDashboardSummary expects (education_level vs workExperience), so even after fixing the backend the summary call will keep falling back to sample data (apps/frontend/components/pages/AssessmentPage.tsx#L125-L177, apps/frontend/lib/api/summary.ts#L54-L149).
+ResultsDashboard never calls setCareers(careerData) in the success path, so downstream components always see an empty array and resource accordions remain blank; retry banner is the only feedback (apps/frontend/components/pages/ResultsDashboard.tsx#L108-L176).
+Chat is broken because useChatbot passes a second parameter that sendChatMessage does not accept, leading to a TypeScript error and runtime failure once strict mode is enforced (apps/frontend/lib/hooks/useChatbot.ts#L33-L58, apps/frontend/lib/api/chat.ts#L43-L104).
+Job data flows are inconsistent: JobFeed calls getJobListings(category, …) even though the function accepts a single { query } object, the job type includes company, location, requirements, salaryRange, etc., none of which the backend returns, and JobPage relies on JobSearchParams fields that are not defined (apps/frontend/components/dashboard/JobFeed.tsx#L31-L117, apps/frontend/components/pages/JobPage.tsx#L18-L129, apps/frontend/lib/api/jobs.ts#L1-L44).
+Everything beyond core flows—career detail, recommendations, resources, games, resume builder/analyzer—runs purely on mocked arrays and timeouts, so they need real API contracts or should be clearly labeled as demos (apps/frontend/components/pages/CareerDetailPage.tsx#L22-L210, apps/frontend/lib/api/recommend.tsx#L1-L146, apps/frontend/lib/api/resources.ts#L1-L44, apps/frontend/components/pages/GamePage.tsx#L22-L176, apps/frontend/components/resume/ResumeAnalyzer.tsx#L47-L206).
+LLM Service & Integration
+
+The backend defaults to LLM_SERVICE_BASE_URL=http://localhost:11434 while the FastAPI README tells contributors to expose 11435, so one of the ports must be standardized to avoid connection refusals (apps/backend/.env.example#L1-L3, services/llm/README.md#L20-L34).
+app.py is just an HTTP proxy; it lacks streaming support, telemetry, retry/backoff, and payload filtering, so any upstream error surfaces as a raw 502 to users (services/llm/app.py#L1-L34).
+requirements.txt pulls in heavyweight stacks (torch, transformers, pandas, numpy) even though the service never imports them, which makes deployments unnecessary large (services/llm/requirements.txt#L1-L34).
+The monorepo workspace ignores the Python package entirely, so pnpm install cannot manage or validate the LLM layer; add it to the workspace or document a parallel workflow (pnpm-workspace.yaml#L1-L4).
+Process & Assets
+
+Build outputs under .next/ and potentially node_modules/ directories are tracked, inflating the repo and risking stale bundles in production (apps/frontend/.next/app-build-manifest.json).
+There is no automated testing (unit, integration, or E2E) nor lint/type-check enforcement; both Next.js and Express configs disable build-time safety (ignoreDuringBuilds / ignoreBuildErrors) so regressions sneak in (apps/frontend/next.config.mjs#L2-L16).
+The centralized apiClient still points at /api, but most calls bypass it and manually hit API_BASE_URL, so future auth or tracing headers will be inconsistent (apps/frontend/lib/utils/api-client.ts#L1-L54).
+Missing documentation for environment contracts (assessment payload shape, job listing schema, chat models) leaves contributors guessing; README files describe endpoints but not the JSON they expect to emit/consume beyond marketing text (apps/backend/README.md#L5-L28).
+
+Suggested Next Steps
+
+Fix backend controller syntax, add request validation, and normalize the response contract so summary.ts, job fetchers, and chat UI receive consistent JSON structures.
+Replace frontend mock APIs with real calls through apiClient, ensuring AssessmentPage actually posts user input and the results dashboard persists and reuses that payload.
+Align job data models across backend prompt, REST response, and UI components; add parsing, schema validation, and error handling for LLM-generated job lists.
+Harden the LLM proxy (port alignment, retries, streaming, trimmed dependencies) and add health/metrics endpoints so the Node service can detect outages.
+Clean the repo (remove .next, add the LLM service to the workspace, re-enable Next.js lint/type errors) and introduce CI with at least linting plus smoke tests so regressions are caught immediately.
+Let me know if you want help prioritizing implementation work or drafting fixes for any of these areas.
+
+GPT-5.1-Codex • 1x

@@ -1,66 +1,62 @@
-# AI CareerPath
+# Hackspora Monorepo
 
-Welcome to **AI CareerPath**, an innovative project dedicated to empowering individuals on their journey through careers in artificial intelligence. Proudly developed by the team **Hackspora**, this platform offers intelligent career guidance, resources, and tools designed to help users explore, prepare for, and advance in AI-related fields.
+The project is now organized as a modular monorepo so the frontend, backend, and LLM runtime can evolve independently while sharing a single source of truth.
 
-## Overview
+## Directory Layout
 
-AI CareerPath leverages advanced artificial intelligence to analyze user profiles, interests, and goals, delivering personalized recommendations for learning pathways, certifications, job opportunities, and skills development. Whether you're a student, professional, or aspiring AI specialist, our solution makes the transition into AI more accessible and actionable.
+| Path | Description |
+| --- | --- |
+| `apps/frontend` | Next.js 14 client that renders the AI CareerPath experience |
+| `apps/backend` | Express API that validates input, aggregates data, and talks to the LLM service |
+| `services/llm` | FastAPI wrapper around Ollama (or any compatible chat model) |
 
-## Features
+`pnpm-workspace.yaml` wires both Node services into the same dependency graph, while the Python code lives under `services/` with its own virtual environment.
 
-- **Personalized Career Guidance:** Tailored recommendations based on your academic background, professional experience, and AI interests.
-- **Learning Pathways:** Curated roadmaps, online courses, and resources for foundational to advanced AI topics – including machine learning, data science, NLP, computer vision, and more.
-- **Skill Gap Analysis:** Identify and bridge gaps in your current skill set to meet market needs.
-- **Job & Internship Matching:** Intelligent matching with trending AI jobs, internships, and research positions.
-- **Resume and Profile Optimization:** Tools to enhance your CV and online presence for AI roles.
-- **Community & Networking:** Forums, mentorship programs, and events to connect with AI professionals and enthusiasts.
+## Prerequisites
 
-## Technology Stack
+- Node.js 18+
+- pnpm 9+
+- Python 3.10+
+- Ollama with the `llama3.2:1b` model (or update the model name)
 
-- **Backend:** [Specify framework/language, e.g., Python, Node.js]
-- **Frontend:** [Specify framework/language, e.g., React, Angular]
-- **AI/ML:** [Specify used libraries, e.g., TensorFlow, PyTorch]
-- **Database:** [Specify, e.g., PostgreSQL, MongoDB]
-- **Cloud & Deployment:** [Specify, e.g., AWS, Azure, Heroku]
+## Bootstrap Checklist
 
-## Getting Started
-
-1. **Clone the Repository**
+1. **Install Node dependencies**
    ```bash
-   git clone https://github.com/JAYMITHRAN/Hackspora.git
+   pnpm install --filter ai-careerpath-frontend
+   pnpm install --filter ai-careerpath-backend
    ```
-2. **Install Dependencies**
+2. **Configure environment files**
+   - `apps/frontend/.env.example` → `.env.local`
+   - `apps/backend/.env.example` → `.env`
+   - `services/llm/.env.example` → `.env`
+3. **Create a Python virtual environment for the LLM service**
    ```bash
-   # Example for Node.js
-   npm install
-   # Example for Python
+   cd services/llm
+   python -m venv .venv
+   source .venv/bin/activate  # Windows: .venv\Scripts\activate
    pip install -r requirements.txt
    ```
-3. **Launch the Application**
+4. **Run the services** (in separate terminals)
    ```bash
-   # Example command
-   npm start
-   # or
-   python main.py
+   # LLM proxy (defaults to port 11435)
+   cd services/llm && uvicorn app:app --host 0.0.0.0 --port 11435
+
+   # Backend API
+   cd apps/backend && pnpm run dev
+
+   # Frontend
+   cd apps/frontend && pnpm run dev
    ```
 
-4. **Access the Platform**
-   Open your browser and go to `http://localhost:8000` (adjust accordingly).
+Update `LLM_SERVICE_BASE_URL` in the backend `.env` to point at the LLM proxy (`http://localhost:11435`). If you expose Ollama directly, simply replace the URL.
 
-## Contribution Guidelines
+## Deploying
 
-We welcome contributions from the community! Please refer to our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines regarding issues, pull requests, and code standards.
+Because each layer is isolated, you can deploy them separately:
 
-## License
+- **Frontend** → Vercel, Netlify, or any static hosting that supports Next.js
+- **Backend** → Node-friendly runtime (Render, Fly.io, Azure App Service, etc.)
+- **LLM Service** → GPU VM, managed container, or an on-prem Ollama host
 
-This project is licensed under the [MIT License](LICENSE).
-
-## Contact & Acknowledgements
-
-Developed by **Hackspora**. For questions, feedback, or collaboration opportunities, please [open an issue](https://github.com/JAYMITHRAN/Hackspora/issues) or email us at [your email here].
-
-Special thanks to all contributors and users supporting AI-driven career growth!
-
----
-
-**Empower your future with AI CareerPath.**
+Keep the contracts between layers (REST endpoints + JSON payloads) stable to upgrade components without cross-cutting changes.
