@@ -168,7 +168,7 @@ export async function saveCareerInterest(careerId: string): Promise<void> {
     }
 
     // Also send to API for persistence
-    await apiClient.post("/careers/save", { careerId })
+    await apiClient.post("/api/careers/save", { careerId })
 
     console.log("Career interest saved:", careerId)
   } catch (error) {

@@ -1,5 +1,6 @@
 const LLM_BASE_URL = process.env.LLM_SERVICE_BASE_URL || "http://localhost:11435";
 const DEFAULT_MODEL = process.env.LLM_MODEL || "llama3.2:1b";
+const { recordAssessment } = require("../lib/stateStore");
 
 const REQUIRED_FIELDS = ["name", "workExperience", "educationLevel"];
 
@@ -126,6 +127,12 @@ Return only JSON following this contract:
       const llmResponse = await response.json();
       const parsed = parseLlmContent(llmResponse?.message?.content);
       const normalized = parsed.llmResponse || parsed;
+
+      recordAssessment({
+        payload: data,
+        response: { llmResponse: normalized },
+        timestamp: new Date().toISOString(),
+      });
 
       return res.json({ llmResponse: normalized });
     } catch (error) {

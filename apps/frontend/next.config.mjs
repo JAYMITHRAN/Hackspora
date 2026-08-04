@@ -14,6 +14,16 @@ const nextConfig = {
     defaultLocale: 'en',
     localeDetection: false,
   },
+  async rewrites() {
+    const backendBaseUrl = process.env.BACKEND_API_URL || 'http://localhost:5001'
+
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${backendBaseUrl}/api/:path*`,
+      },
+    ]
+  },
 }
 
 export default nextConfig

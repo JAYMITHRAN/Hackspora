@@ -1,0 +1,103 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../apps"
+		},
+		{
+			"path": "../apps/backend"
+		},
+		{
+			"path": "../apps/backend/controllers"
+		},
+		{
+			"path": "../apps/backend/routes"
+		},
+		{
+			"path": "../apps/frontend"
+		},
+		{
+			"path": "../apps/frontend/app"
+		},
+		{
+			"path": "../apps/frontend/app/assessment"
+		},
+		{
+			"path": "../apps/frontend/app/career"
+		},
+		{
+			"path": "../apps/frontend/app/chat"
+		},
+		{
+			"path": "../apps/frontend/app/game"
+		},
+		{
+			"path": "../apps/frontend/app/jobs"
+		},
+		{
+			"path": "../apps/frontend/app/quiz"
+		},
+		{
+			"path": "../apps/frontend/app/results"
+		},
+		{
+			"path": "../apps/frontend/app/resume"
+		},
+		{
+			"path": "../apps/frontend/components"
+		},
+		{
+			"path": "../apps/frontend/components/chatbot"
+		},
+		{
+			"path": "../apps/frontend/components/common"
+		},
+		{
+			"path": "../apps/frontend/components/dashboard"
+		},
+		{
+			"path": "../apps/frontend/components/gamification"
+		},
+		{
+			"path": "../apps/frontend/components/layout"
+		},
+		{
+			"path": "../apps/frontend/components/pages"
+		},
+		{
+			"path": "../apps/frontend/components/providers"
+		},
+		{
+			"path": "../apps/frontend/components/resume"
+		},
+		{
+			"path": "../apps/frontend/components/ui"
+		},
+		{
+			"path": "../apps/frontend/hooks"
+		},
+		{
+			"path": "../apps/frontend/lib"
+		},
+		{
+			"path": "../apps/frontend/lib/api"
+		},
+		{
+			"path": "../apps/frontend/lib/hooks"
+		},
+		{
+			"path": "../apps/frontend/lib/utils"
+		},
+		{
+			"path": "../apps/frontend/public"
+		},
+		{
+			"path": "../apps/frontend/styles"
+		},
+		{
+			"path": "../services/llm"
+		}
+	]
+}

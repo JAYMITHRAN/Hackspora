@@ -15,7 +15,7 @@ Copy `.env.example` to `.env` and adjust values as needed.
 
 - `PORT` – HTTP port (defaults to `5000`)
 - `FRONTEND_ORIGIN` – Comma-separated list of allowed origins for CORS
-- `LLM_SERVICE_BASE_URL` – Base URL of the Python LLM service (`http://localhost:11435` is recommended)
+- `LLM_SERVICE_BASE_URL` – Base URL of the Python LLM service (`http://localhost:11435` is the default)
 
 ## Local Development
 

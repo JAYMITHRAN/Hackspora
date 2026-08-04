@@ -27,7 +27,83 @@ interface ChatServiceResponse {
   metadata?: any
 }
 
-export async function sendChatMessage(userInput: string, conversationId?: string): Promise<ChatMessage> {
+interface StoredChatMessage {
+  id: string
+  type: "user" | "bot"
+  content: string
+  timestamp: string
+  metadata?: any
+}
+
+const CHAT_CONVERSATION_KEY = "chat-conversation-id"
+
+const createConversationId = () => `chat-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+
+const getStorage = () => (typeof window === "undefined" ? null : window.localStorage)
+
+const toStoredMessage = (message: ChatMessage): StoredChatMessage => ({
+  ...message,
+  timestamp: message.timestamp.toISOString(),
+})
+
+const fromStoredMessage = (message: StoredChatMessage): ChatMessage => ({
+  ...message,
+  timestamp: new Date(message.timestamp),
+})
+
+const getConversationId = (): string => {
+  const storage = getStorage()
+  if (!storage) {
+    return createConversationId()
+  }
+
+  const existing = storage.getItem(CHAT_CONVERSATION_KEY)
+  if (existing && existing.trim()) {
+    return existing
+  }
+
+  const nextId = createConversationId()
+  storage.setItem(CHAT_CONVERSATION_KEY, nextId)
+  return nextId
+}
+
+const getHistoryKey = (conversationId?: string) => `chat-${conversationId || getConversationId()}`
+
+export const saveChatHistory = (messages: ChatMessage[], conversationId?: string): void => {
+  const storage = getStorage()
+  if (!storage) return
+
+  storage.setItem(getHistoryKey(conversationId), JSON.stringify(messages.map(toStoredMessage)))
+}
+
+export const readChatHistory = (conversationId?: string): ChatMessage[] => {
+  const storage = getStorage()
+  if (!storage) return []
+
+  try {
+    const raw = storage.getItem(getHistoryKey(conversationId))
+    if (!raw) return []
+
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return []
+
+    return parsed
+      .filter((item): item is StoredChatMessage => Boolean(item && item.id && item.type && item.content && item.timestamp))
+      .map(fromStoredMessage)
+  } catch (error) {
+    console.error("Failed to read chat history:", error)
+    return []
+  }
+}
+
+export const clearPersistedChatHistory = (conversationId?: string): void => {
+  const storage = getStorage()
+  if (!storage) return
+
+  storage.removeItem(getHistoryKey(conversationId))
+}
+
+export async function sendChatMessage(userInput: string): Promise<ChatMessage> {
   try {
     const requestData = {
       model: "llama3.2:1b",
@@ -101,12 +177,10 @@ The output must be fully structured in **text** with headings and bullet points,
         }
       ],
       stream: false,
-      options: conversationId ? { conversationId } : {}
     }
-    console.log("Request Data:", requestData)
+
     const data = await apiClient.post<ChatServiceResponse>("/api/chatbot", requestData)
 
-    console.log("Response: ", data)
     const botMessage: ChatMessage = {
       id: data?.id || Math.random().toString(36).substr(2, 9),
       type: "bot",
@@ -123,17 +197,11 @@ The output must be fully structured in **text** with headings and bullet points,
   }
 }
 
-// Usage example
-
-
 export async function getChatHistory(
   conversationId?: string
 ): Promise<ChatMessage[]> {
   try {
-    const conversationKey = `chat-${conversationId || "default"}`
-    const localHistory = dataManager.getLocalStorage<ChatMessage[]>(conversationKey)
-
-    return localHistory || []
+    return readChatHistory(conversationId)
   } catch (error) {
     console.error("Failed to fetch chat history:", error)
     return []
@@ -142,10 +210,7 @@ export async function getChatHistory(
 
 export async function clearChatHistory(conversationId?: string): Promise<void> {
   try {
-    const conversationKey = `chat-${conversationId || "default"}`
-    dataManager.removeLocalStorage(conversationKey)
-
-    // Remote deletion is handled by the backend/LLM service; no action needed here.
+    clearPersistedChatHistory(conversationId)
   } catch (error) {
     console.error("Failed to clear chat history:", error)
   }

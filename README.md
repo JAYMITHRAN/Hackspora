@@ -12,6 +12,8 @@ The project is now organized as a modular monorepo so the frontend, backend, and
 
 `pnpm-workspace.yaml` wires both Node services into the same dependency graph, while the Python code lives under `services/` with its own virtual environment.
 
+The repository also includes a Docker Compose stack so the frontend, backend, LLM proxy, Ollama runtime, and the default model can run together from one command.
+
 ## Prerequisites
 
 - Node.js 18+
@@ -50,6 +52,23 @@ The project is now organized as a modular monorepo so the frontend, backend, and
    ```
 
 Update `LLM_SERVICE_BASE_URL` in the backend `.env` to point at the LLM proxy (`http://localhost:11435`). If you expose Ollama directly, simply replace the URL.
+
+## Docker
+
+To run the entire stack with Docker:
+
+```bash
+docker compose up --build
+```
+
+The compose file starts these services:
+
+- `ollama` on the internal Docker network, with `llama3.2:1b` bootstrapped automatically into the shared model volume
+- `llm` on `11435`
+- `backend` published on `5001`
+- `frontend` published on `3002`
+
+You can override the model by setting `OLLAMA_MODEL` before starting Compose. The frontend talks to the backend through `NEXT_PUBLIC_API_BASE_URL`, and the backend talks to the LLM proxy through `LLM_SERVICE_BASE_URL`.
 
 ## Deploying
 

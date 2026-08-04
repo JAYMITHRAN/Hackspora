@@ -17,7 +17,7 @@ cp .env.example .env.local   # if you maintain environment overrides
 pnpm run dev
 ```
 
-Visit `http://localhost:3000`. Update `NEXT_PUBLIC_API_BASE_URL` (if introduced) to point to the backend service.
+Visit `http://localhost:3002`. The frontend now uses `http://localhost:3002` as its public API base and proxies `/api` requests to the backend.
 
 ## Build & Preview
 

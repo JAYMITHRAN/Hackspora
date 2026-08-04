@@ -70,7 +70,7 @@ export async function getAssessmentHistory(): Promise<any[]> {
       return cached
     }
 
-    const history = await apiClient.get<any[]>("/assessments/history")
+    const history = await apiClient.get<any[]>("/api/assessments/history")
     dataManager.set("assessment-history", history)
     return history
   } catch (error) {
